@@ -32,19 +32,10 @@ export default function WelcomeScreen() {
 					size="default"
 					variant="default"
 					onPress={() => {
-						router.push("/sign-up");
+						router.push("/phone-verify");
 					}}
 				>
-					<Text>Sign Up</Text>
-				</Button>
-				<Button
-					size="default"
-					variant="secondary"
-					onPress={() => {
-						router.push("/sign-in");
-					}}
-				>
-					<Text>Sign In</Text>
+					<Text>Continue with Phone</Text>
 				</Button>
 			</View>
 		</SafeAreaView>

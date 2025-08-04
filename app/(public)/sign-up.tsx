@@ -52,8 +52,9 @@ export default function SignUp() {
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
 			await signUp(data.email, data.password);
-
 			form.reset();
+			// Redirect to phone verification after successful signup
+			router.push("/phone-verify");
 		} catch (error: Error | any) {
 			console.error(error.message);
 		}
