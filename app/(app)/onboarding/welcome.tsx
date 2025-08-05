@@ -29,21 +29,21 @@ export default function OnboardingWelcome() {
 						<View className="w-8 h-8 bg-primary rounded-full items-center justify-center">
 							<Text className="text-white font-bold">1</Text>
 						</View>
-						<Muted>Set up your profile</Muted>
+						<Muted>Tell us your name</Muted>
 					</View>
 					
 					<View className="flex-row items-center gap-3">
 						<View className="w-8 h-8 bg-muted rounded-full items-center justify-center">
 							<Text className="text-muted-foreground font-bold">2</Text>
 						</View>
-						<Muted>Choose your preferences</Muted>
+						<Muted>Select your gender</Muted>
 					</View>
 					
 					<View className="flex-row items-center gap-3">
 						<View className="w-8 h-8 bg-muted rounded-full items-center justify-center">
 							<Text className="text-muted-foreground font-bold">3</Text>
 						</View>
-						<Muted>Start using the app</Muted>
+						<Muted>Share your date of birth</Muted>
 					</View>
 				</View>
 			</View>
@@ -52,7 +52,7 @@ export default function OnboardingWelcome() {
 				<Button
 					size="default"
 					variant="default"
-					onPress={() => router.push("/(app)/onboarding/profile")}
+					onPress={() => router.push("/(app)/onboarding/first-name")}
 				>
 					<Text>Get Started</Text>
 				</Button>

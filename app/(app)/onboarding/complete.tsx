@@ -1,17 +1,46 @@
-import React from "react";
-import { View } from "react-native";
+import React, { useState } from "react";
+import { View, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
+import { useAuth } from "@/context/supabase-provider";
+import { supabase } from "@/config/supabase";
 
 export default function CompleteScreen() {
-	const handleComplete = () => {
-		// TODO: Mark onboarding as complete
-		console.log("Onboarding completed!");
-		router.replace("/(app)/(tabs)");
+	const { session } = useAuth();
+	const [isLoading, setIsLoading] = useState(false);
+
+	const handleComplete = async () => {
+		if (!session?.user) return;
+		
+		try {
+			setIsLoading(true);
+			
+			// Mark user as onboarded in the database
+			const { error } = await supabase
+				.from("users")
+				.update({ 
+					is_onboarded: true,
+					onboarding_completion: 100,
+					updated_at: new Date().toISOString()
+				})
+				.eq("auth_user_id", session.user.id);
+
+			if (error) {
+				console.error("Error marking onboarding complete:", error);
+			} else {
+				console.log("Onboarding completed successfully!");
+			}
+			
+			// Navigate to main app
+			router.replace("/(app)/(tabs)");
+		} catch (error) {
+			console.error("Error completing onboarding:", error);
+			setIsLoading(false);
+		}
 	};
 
 	return (
@@ -54,8 +83,16 @@ export default function CompleteScreen() {
 					size="default"
 					variant="default"
 					onPress={handleComplete}
+					disabled={isLoading}
 				>
-					<Text>Start Using App</Text>
+					{isLoading ? (
+						<>
+							<ActivityIndicator size="small" color="white" />
+							<Text className="ml-2">Completing...</Text>
+						</>
+					) : (
+						<Text>Start Using App</Text>
+					)}
 				</Button>
 			</View>
 		</SafeAreaView>
