@@ -9,30 +9,30 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField, FormInput } from "@/components/ui/form";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
-import { useAuth } from "@/context/supabase-provider";
+import { useOnboarding } from "@/context/onboarding-provider";
 
-const onboardingSchema = z.object({
+const profileSchema = z.object({
 	name: z.string().min(2, "Please enter your name."),
 	email: z.string().email("Please enter a valid email address."),
 });
 
-export default function Onboarding() {
-	const { completeOnboarding } = useAuth();
-
-	const form = useForm<z.infer<typeof onboardingSchema>>({
-		resolver: zodResolver(onboardingSchema),
+export default function Profile() {
+	const { updateProfile } = useOnboarding();
+	
+	const form = useForm<z.infer<typeof profileSchema>>({
+		resolver: zodResolver(profileSchema),
 		defaultValues: {
 			name: "",
 			email: "",
 		},
 	});
 
-	async function onSubmit(data: z.infer<typeof onboardingSchema>) {
+	async function onSubmit(data: z.infer<typeof profileSchema>) {
 		try {
-			await completeOnboarding(data.name, data.email);
+			// Store profile data in onboarding context
+			updateProfile(data);
 			form.reset();
-			// Navigate to the homepage after onboarding completion
-			router.push("/(protected)/(tabs)");
+			router.push("/onboarding/preferences");
 		} catch (error: Error | any) {
 			console.error(error.message);
 		}
@@ -40,11 +40,20 @@ export default function Onboarding() {
 
 	return (
 		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
-			<View className="flex-1 gap-4 py-24 web:m-4">
-				<H1 className="self-start">Welcome!</H1>
-				<Muted className="flex">
-					Let&apos;s set up your profile to get started.
-				</Muted>
+			<View className="flex-1 gap-6 py-24 web:m-4">
+				<View className="gap-4">
+					<View className="flex-row items-center gap-3">
+						<View className="w-8 h-8 bg-primary rounded-full items-center justify-center">
+							<Text className="text-white font-bold">1</Text>
+						</View>
+						<Muted>Set up your profile</Muted>
+					</View>
+					
+					<H1 className="self-start">Tell us about yourself</H1>
+					<Muted className="flex">
+						Let&apos;s start with the basics. We&apos;ll use this information to personalize your experience.
+					</Muted>
+				</View>
 
 				<Form {...form}>
 					<View className="gap-4">
@@ -81,19 +90,29 @@ export default function Onboarding() {
 				</Form>
 			</View>
 
-			<Button
-				size="default"
-				variant="default"
-				onPress={form.handleSubmit(onSubmit)}
-				disabled={form.formState.isSubmitting}
-				className="web:m-4"
-			>
-				{form.formState.isSubmitting ? (
-					<ActivityIndicator size="small" />
-				) : (
-					<Text>Complete Setup</Text>
-				)}
-			</Button>
+			<View className="gap-4 web:m-4">
+				<Button
+					size="default"
+					variant="default"
+					onPress={form.handleSubmit(onSubmit)}
+					disabled={form.formState.isSubmitting}
+				>
+					{form.formState.isSubmitting ? (
+						<ActivityIndicator size="small" />
+					) : (
+						<Text>Continue</Text>
+					)}
+				</Button>
+				
+				<Button
+					size="default"
+					variant="secondary"
+					onPress={() => router.back()}
+					disabled={form.formState.isSubmitting}
+				>
+					<Text>Back</Text>
+				</Button>
+			</View>
 		</SafeAreaView>
 	);
 } 

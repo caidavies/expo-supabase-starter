@@ -1,8 +1,8 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, View, TextInput } from "react-native";
-import { useState } from "react";
 import { router } from "expo-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 import { SafeAreaView } from "@/components/safe-area-view";
@@ -11,6 +11,7 @@ import { Form, FormField, FormInput } from "@/components/ui/form";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useAuth } from "@/context/supabase-provider";
+import { supabase } from "@/config/supabase";
 
 const phoneSchema = z.object({
 	phone: z.string().min(10, "Please enter a valid phone number."),
@@ -24,10 +25,43 @@ const otpSchema = z.object({
 });
 
 export default function PhoneVerify() {
-	const { verifyPhone, verifyOTP } = useAuth();
+	const { verifyPhone, verifyOTP, session, checkUserPreferences } = useAuth();
 	const [isOTPSent, setIsOTPSent] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
-	const [phoneNumber, setPhoneNumber] = useState("");
+	const [phoneNumber, setPhoneNumber] = useState('');
+	const [hasNavigated, setHasNavigated] = useState(false);
+
+	// Handle navigation after OTP verification
+	useEffect(() => {
+		const handleNavigation = async () => {
+			if (hasNavigated) {
+				console.log("Navigation already attempted, skipping");
+				return;
+			}
+
+			console.log("=== PHONE VERIFICATION - NAVIGATION DEBUG ===");
+			console.log("Session:", session);
+			console.log("Session user:", session?.user);
+			console.log("Session user ID:", session?.user?.id);
+			
+			if (session) {
+				console.log("Session detected - redirecting to protected area");
+				console.log("Onboarding check will be handled by protected layout");
+				setHasNavigated(true);
+				router.replace("/(protected)/(tabs)");
+				console.log("Navigation command sent");
+			} else {
+				console.log("No session detected");
+			}
+		};
+
+		// Add a small delay to ensure session is fully set
+		const timeoutId = setTimeout(() => {
+			handleNavigation();
+		}, 100);
+
+		return () => clearTimeout(timeoutId);
+	}, [session, hasNavigated]);
 
 	const phoneForm = useForm<z.infer<typeof phoneSchema>>({
 		resolver: zodResolver(phoneSchema),
@@ -62,8 +96,7 @@ export default function PhoneVerify() {
 			setIsLoading(true);
 			await verifyOTP(data.otp, phoneNumber);
 			otpForm.reset();
-			// Navigate to onboarding after successful verification
-			router.push("/onboarding");
+			// Navigation will be handled by auth state changes
 		} catch (error: Error | any) {
 			console.error(error.message);
 		} finally {
@@ -85,6 +118,17 @@ export default function PhoneVerify() {
 						💡 For testing, use +15005550006 (code: 123456)
 					</Muted>
 				)}
+
+				{/* Test navigation button */}
+				<Button
+					onPress={() => {
+						console.log("Manual navigation test");
+						router.replace("/onboarding/welcome");
+					}}
+					variant="outline"
+				>
+					<Text>Test Navigation to Onboarding</Text>
+				</Button>
 
 				{!isOTPSent ? (
 					<Form {...phoneForm}>

@@ -19,6 +19,7 @@ type AuthState = {
 	verifyPhone: (phone: string) => Promise<void>;
 	verifyOTP: (otp: string, phone: string) => Promise<void>;
 	completeOnboarding: (name: string, email: string) => Promise<void>;
+	checkUserPreferences: () => Promise<boolean>;
 };
 
 export const AuthContext = createContext<AuthState>({
@@ -30,6 +31,7 @@ export const AuthContext = createContext<AuthState>({
 	verifyPhone: async () => {},
 	verifyOTP: async () => {},
 	completeOnboarding: async () => {},
+	checkUserPreferences: async () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -101,7 +103,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				
 				// Handle test account limitations
 				if (error.message.includes("Test Account Credentials")) {
-					throw new Error("Please use a test phone number (e.g., +15005550006) or upgrade your Twilio account");
+					throw new Error(
+						"Please use a test phone number (e.g., +15005550006) or upgrade your Twilio account",
+					);
 				}
 				
 				throw new Error(error.message);
@@ -122,7 +126,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			const { data, error } = await supabase.auth.verifyOtp({
 				phone: phone,
 				token: otp,
-				type: 'sms'
+				type: "sms",
 			});
 			
 			if (error) {
@@ -134,25 +138,53 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				console.log("OTP verified successfully");
 				setSession(data.session);
 				
-				// Check if user exists in profiles table
+				// Check if user exists in users table
 				const { data: existingUser, error: userError } = await supabase
-					.from('profiles')
-					.select('*')
-					.eq('id', data.user.id)
+					.from("users")
+					.select("*")
+					.eq("auth_user_id", data.user?.id)
 					.single();
 				
-				if (userError && userError.code !== 'PGRST116') {
+				if (userError && userError.code !== "PGRST116") {
 					console.error("Error checking user profile:", userError);
 				}
 				
 				const isNewUser = !existingUser;
 				
 				if (isNewUser) {
+					console.log("New user detected - creating user record");
+					
+					// Create user record in users table
+					const { data: newUser, error: createUserError } = await supabase
+						.from("users")
+						.insert({
+							auth_user_id: data.user?.id,
+							email: data.user?.email || null,
+							created_at: new Date().toISOString(),
+							updated_at: new Date().toISOString(),
+						})
+						.select()
+						.single();
+					
+					if (createUserError) {
+						console.error("Error creating user record:", createUserError);
+					} else {
+						console.log("User record created successfully:", newUser);
+					}
+					
 					console.log("New user - will redirect to onboarding");
 					// Navigation will be handled in the component
 				} else {
 					console.log("Existing user - already signed in");
-					// User is already signed in via session
+					// Check if user has preferences
+					const hasPreferences = await checkUserPreferences();
+					if (!hasPreferences) {
+						console.log("Existing user has no preferences - redirecting to onboarding");
+						// Navigation will be handled in the component
+					} else {
+						console.log("Existing user has preferences - redirecting to main app");
+						// Navigation will be handled in the component
+					}
 				}
 			} else {
 				throw new Error("Invalid verification code");
@@ -172,28 +204,83 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			}
 			
 			// Create or update user profile in Supabase
-			const { data: profile, error: profileError } = await supabase
-				.from('profiles')
+			const { data: user, error: userError } = await supabase
+				.from('users')
 				.upsert({
-					id: session.user.id,
-					name: name,
+					auth_user_id: session.user.id,
 					email: email,
-					phone: session.user.phone,
+					first_name: name.split(' ')[0] || name,
+					last_name: name.split(' ').slice(1).join(' ') || null,
 					updated_at: new Date().toISOString(),
 				})
 				.select()
 				.single();
 			
-			if (profileError) {
-				console.error("Error creating profile:", profileError);
+			if (userError) {
+				console.error("Error creating user:", userError);
 				throw new Error("Failed to create user profile");
 			}
 			
 			console.log("Onboarding completed successfully");
-			console.log("User profile created:", profile);
+			console.log("User profile created:", user);
 		} catch (error) {
 			console.error("Error completing onboarding:", error);
 			throw error;
+		}
+	};
+
+	const checkUserPreferences = async () => {
+		try {
+			console.log("=== CHECKING USER PREFERENCES ===");
+			console.log("Session user ID:", session?.user?.id);
+			
+			if (!session?.user) {
+				console.log("No session user found");
+				return false;
+			}
+
+			// First get the user record to get the user_id
+			const { data: user, error: userError } = await supabase
+				.from("users")
+				.select("id")
+				.eq("auth_user_id", session.user.id)
+				.single();
+
+			console.log("=== USER LOOKUP ===");
+			console.log("Looking for user with auth_user_id:", session.user.id);
+			console.log("User data:", user);
+			console.log("User error:", userError);
+
+			if (userError) {
+				console.error("Error getting user:", userError);
+				return false;
+			}
+
+			console.log("Found user ID:", user.id);
+
+			// Check if user has preferences
+			const { data, error } = await supabase
+				.from("user_preferences")
+				.select("*")
+				.eq("user_id", user.id)
+				.single();
+
+			console.log("=== PREFERENCES LOOKUP ===");
+			console.log("Looking for preferences with user_id:", user.id);
+			console.log("Preferences data:", data);
+			console.log("Preferences error:", error);
+
+			if (error && error.code !== "PGRST116") {
+				console.error("Error checking user preferences:", error);
+				return false;
+			}
+
+			const hasPreferences = !!data;
+			console.log("Final result - has preferences:", hasPreferences);
+			return hasPreferences;
+		} catch (error) {
+			console.error("Error checking user preferences:", error);
+			return false;
 		}
 	};
 
@@ -220,6 +307,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				verifyPhone,
 				verifyOTP,
 				completeOnboarding,
+				checkUserPreferences,
 			}}
 		>
 			{children}
