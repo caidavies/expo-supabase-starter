@@ -7,14 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
+import { useOnboarding } from '@/context/onboarding-provider';
 
-export default function HometownScreen() {
-  const [hometown, setHometown] = useState('');
+export default function LocationScreen() {
+  const [location, setLocation] = useState('');
+  const { updateProfile } = useOnboarding();
 
   const handleNext = () => {
-    if (hometown.trim()) {
-      console.log('Hometown:', hometown);
-      router.push('/onboarding/screens/WorkScreen');
+    if (location.trim()) {
+      // Store location in onboarding context - treating as city for now
+      updateProfile({ 
+        location: { city: location, state: '' }
+      });
+      console.log('Location saved:', location);
+      router.push('/(onboarding)/profile');
     }
   };
 
@@ -22,17 +28,17 @@ export default function HometownScreen() {
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">Where are you from?</H1>
+          <H1 className="self-start">Where are you located?</H1>
           <Muted className="flex">
-            Tell us about your hometown or where you grew up.
+            This helps us find matches near you.
           </Muted>
         </View>
 
         <View className="gap-4">
           <Input
-            placeholder="Enter your hometown"
-            value={hometown}
-            onChangeText={setHometown}
+            placeholder="Enter your city or location"
+            value={location}
+            onChangeText={setLocation}
             className="text-center text-lg"
           />
         </View>
@@ -43,7 +49,7 @@ export default function HometownScreen() {
           size="default"
           variant="default"
           onPress={handleNext}
-          disabled={!hometown.trim()}
+          disabled={!location.trim()}
         >
           <Text>Next</Text>
         </Button>

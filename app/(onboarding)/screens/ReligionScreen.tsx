@@ -7,22 +7,25 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
 
-const relationshipTypeOptions = [
-  'Monogamous',
-  'Polyamorous',
-  'Open relationship',
-  'Casual dating',
-  'Friends with benefits',
-  'Not sure yet'
+const religionOptions = [
+  'Christianity',
+  'Islam',
+  'Hinduism',
+  'Buddhism',
+  'Judaism',
+  'Atheist',
+  'Agnostic',
+  'Other',
+  'Prefer not to say'
 ];
 
-export default function RelationshipTypeScreen() {
-  const [selectedType, setSelectedType] = useState('');
+export default function ReligionScreen() {
+  const [selectedReligion, setSelectedReligion] = useState('');
 
   const handleNext = () => {
-    if (selectedType) {
-      console.log('Relationship type:', selectedType);
-      router.push('/onboarding/screens/DatingIntentionScreen');
+    if (selectedReligion) {
+      console.log('Religion:', selectedReligion);
+      router.push('/(onboarding)/screens/DrinkingScreen');
     }
   };
 
@@ -30,21 +33,21 @@ export default function RelationshipTypeScreen() {
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">What type of relationship are you looking for?</H1>
+          <H1 className="self-start">What's your religion?</H1>
           <Muted className="flex">
-            This helps us match you with people who want the same type of relationship.
+            This helps us find matches with similar values and beliefs.
           </Muted>
         </View>
 
         <View className="gap-3">
-          {relationshipTypeOptions.map((option) => (
+          {religionOptions.map((option) => (
             <Button
               key={option}
-              variant={selectedType === option ? "default" : "outline"}
+              variant={selectedReligion === option ? "default" : "outline"}
               className="w-full justify-start"
-              onPress={() => setSelectedType(option)}
+              onPress={() => setSelectedReligion(option)}
             >
-              <Text className={selectedType === option ? "text-white" : ""}>
+              <Text className={selectedReligion === option ? "text-white" : ""}>
                 {option}
               </Text>
             </Button>
@@ -57,7 +60,7 @@ export default function RelationshipTypeScreen() {
           size="default"
           variant="default"
           onPress={handleNext}
-          disabled={!selectedType}
+          disabled={!selectedReligion}
         >
           <Text>Next</Text>
         </Button>

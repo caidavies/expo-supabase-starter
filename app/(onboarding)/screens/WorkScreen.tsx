@@ -8,13 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
 
-export default function LocationScreen() {
-  const [location, setLocation] = useState('');
+export default function WorkScreen() {
+  const [workInfo, setWorkInfo] = useState('');
 
   const handleNext = () => {
-    if (location.trim()) {
-      console.log('Location:', location);
-      router.push('/onboarding/screens/PronounsScreen');
+    if (workInfo.trim()) {
+      console.log('Work info:', workInfo);
+      router.push('/(onboarding)/screens/ReligionScreen');
     }
   };
 
@@ -22,17 +22,17 @@ export default function LocationScreen() {
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">Where are you located?</H1>
+          <H1 className="self-start">What do you do for work?</H1>
           <Muted className="flex">
-            This helps us find matches near you.
+            Tell us about your job or profession.
           </Muted>
         </View>
 
         <View className="gap-4">
           <Input
-            placeholder="Enter your city or location"
-            value={location}
-            onChangeText={setLocation}
+            placeholder="Enter your job title or profession"
+            value={workInfo}
+            onChangeText={setWorkInfo}
             className="text-center text-lg"
           />
         </View>
@@ -43,7 +43,7 @@ export default function LocationScreen() {
           size="default"
           variant="default"
           onPress={handleNext}
-          disabled={!location.trim()}
+          disabled={!workInfo.trim()}
         >
           <Text>Next</Text>
         </Button>

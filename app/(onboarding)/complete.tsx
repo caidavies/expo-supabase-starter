@@ -22,21 +22,23 @@ export default function Complete() {
 		try {
 			setIsLoading(true);
 			
-			if (!data.profile) {
-				throw new Error("Profile data not found");
-			}
+			// Log all collected onboarding data
+			console.log("=== COMPLETE ONBOARDING DATA ===");
+			console.log("Full onboarding data:", JSON.stringify(data, null, 2));
 			
-			// Complete the onboarding process
-			await completeOnboarding(data.profile.name, data.profile.email);
+			// Save all onboarding data to database
+			await completeOnboarding(data);
 			
-			// Store preferences (in a real app, you'd save this to your database)
-			console.log("Stored preferences:", data.preferences);
+			console.log("=== END ONBOARDING DATA ===");
 			
 			// Clear onboarding data
 			clearData();
 			
-			// Navigate to the homepage
-			router.push("/(protected)/(tabs)");
+			// Simulate delay for demo purposes
+			await new Promise(resolve => setTimeout(resolve, 2000));
+			
+			// Trigger re-evaluation of user state at root level
+			router.replace("/");
 		} catch (error: Error | any) {
 			console.error("Error completing onboarding:", error);
 			setIsLoading(false);

@@ -7,25 +7,19 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
 
-const religionOptions = [
-  'Christianity',
-  'Islam',
-  'Hinduism',
-  'Buddhism',
-  'Judaism',
-  'Atheist',
-  'Agnostic',
-  'Other',
-  'Prefer not to say'
+const drinkingOptions = [
+  'Yes',
+  'Sometimes',
+  "I don't drink"
 ];
 
-export default function ReligionScreen() {
-  const [selectedReligion, setSelectedReligion] = useState('');
+export default function DrinkingScreen() {
+  const [selectedOption, setSelectedOption] = useState('');
 
   const handleNext = () => {
-    if (selectedReligion) {
-      console.log('Religion:', selectedReligion);
-      router.push('/onboarding/screens/DrinkingScreen');
+    if (selectedOption) {
+      console.log('Drinking preference:', selectedOption);
+      router.push('/(onboarding)/screens/SmokingScreen');
     }
   };
 
@@ -33,21 +27,21 @@ export default function ReligionScreen() {
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">What's your religion?</H1>
+          <H1 className="self-start">Do you drink?</H1>
           <Muted className="flex">
-            This helps us find matches with similar values and beliefs.
+            This helps us match you with people who have similar lifestyle preferences.
           </Muted>
         </View>
 
         <View className="gap-3">
-          {religionOptions.map((option) => (
+          {drinkingOptions.map((option) => (
             <Button
               key={option}
-              variant={selectedReligion === option ? "default" : "outline"}
+              variant={selectedOption === option ? "default" : "outline"}
               className="w-full justify-start"
-              onPress={() => setSelectedReligion(option)}
+              onPress={() => setSelectedOption(option)}
             >
-              <Text className={selectedReligion === option ? "text-white" : ""}>
+              <Text className={selectedOption === option ? "text-white" : ""}>
                 {option}
               </Text>
             </Button>
@@ -60,7 +54,7 @@ export default function ReligionScreen() {
           size="default"
           variant="default"
           onPress={handleNext}
-          disabled={!selectedReligion}
+          disabled={!selectedOption}
         >
           <Text>Next</Text>
         </Button>

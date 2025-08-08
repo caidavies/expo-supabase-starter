@@ -1,26 +1,15 @@
-import { Stack, router } from "expo-router";
-import { useEffect } from "react";
+import { Stack } from "expo-router";
 
 import { useColorScheme } from "@/lib/useColorScheme";
 import { colors } from "@/constants/colors";
-import { useAuth } from "@/context/supabase-provider";
 
 export default function PublicLayout() {
 	const { colorScheme } = useColorScheme();
-	const { session } = useAuth();
-
-	useEffect(() => {
-		// If user has a session but is in public area, they might need onboarding
-		if (session?.user) {
-			console.log("User has session in public area - checking if they need onboarding");
-			// We'll handle the onboarding redirect in the welcome screen
-		}
-	}, [session]);
 
 	return (
 		<Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
 			<Stack.Screen name="welcome" />
-			<Stack.Screen name="onboarding" />
+			<Stack.Screen name="phone-verify" />
 			<Stack.Screen
 				name="sign-up"
 				options={{

@@ -6,22 +6,24 @@ import { SafeAreaView } from '@/components/safe-area-view';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
+import { useOnboarding } from '@/context/onboarding-provider';
 
-const datingIntentionOptions = [
-  'Casual dating',
-  'Serious relationship',
-  'Friendship',
-  'Marriage',
-  'Not sure yet'
+const smokingOptions = [
+  'Yes',
+  'Sometimes',
+  'No'
 ];
 
-export default function DatingIntentionScreen() {
-  const [selectedIntention, setSelectedIntention] = useState('');
+export default function SmokingScreen() {
+  const [selectedOption, setSelectedOption] = useState('');
+  const { updateProfile } = useOnboarding();
 
   const handleNext = () => {
-    if (selectedIntention) {
-      console.log('Dating intention:', selectedIntention);
-      router.push('/onboarding/screens/HeightScreen');
+    if (selectedOption) {
+      // Store smoking preference in onboarding context
+      updateProfile({ smoking: selectedOption });
+      console.log('Smoking preference saved:', selectedOption);
+      router.push('/(onboarding)/complete');
     }
   };
 
@@ -29,21 +31,21 @@ export default function DatingIntentionScreen() {
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">What is your dating intention?</H1>
+          <H1 className="self-start">Do you smoke?</H1>
           <Muted className="flex">
-            This helps us match you with people looking for the same thing.
+            This helps us match you with people who have similar lifestyle preferences.
           </Muted>
         </View>
 
         <View className="gap-3">
-          {datingIntentionOptions.map((option) => (
+          {smokingOptions.map((option) => (
             <Button
               key={option}
-              variant={selectedIntention === option ? "default" : "outline"}
+              variant={selectedOption === option ? "default" : "outline"}
               className="w-full justify-start"
-              onPress={() => setSelectedIntention(option)}
+              onPress={() => setSelectedOption(option)}
             >
-              <Text className={selectedIntention === option ? "text-white" : ""}>
+              <Text className={selectedOption === option ? "text-white" : ""}>
                 {option}
               </Text>
             </Button>
@@ -56,7 +58,7 @@ export default function DatingIntentionScreen() {
           size="default"
           variant="default"
           onPress={handleNext}
-          disabled={!selectedIntention}
+          disabled={!selectedOption}
         >
           <Text>Next</Text>
         </Button>

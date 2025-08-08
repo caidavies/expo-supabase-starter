@@ -6,17 +6,17 @@ import { SafeAreaView } from '@/components/safe-area-view';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
+import { useOnboarding } from '@/context/onboarding-provider';
 
-const notificationOptions = [
-  'New matches',
-  'Messages',
-  'Profile views',
-  'App updates',
-  'Marketing emails'
+const sexualityOptions = [
+  'Men',
+  'Women',
+  'Non-Binary'
 ];
 
-export default function NotificationsScreen() {
+export default function SexualityScreen() {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const { updateProfile } = useOnboarding();
 
   const handleOptionToggle = (option: string) => {
     setSelectedOptions(prev => 
@@ -27,22 +27,26 @@ export default function NotificationsScreen() {
   };
 
   const handleNext = () => {
-    console.log('Notification preferences:', selectedOptions);
-    router.push('/onboarding/screens/LocationScreen');
+    if (selectedOptions.length > 0) {
+      // Store sexuality in onboarding context
+      updateProfile({ sexuality: selectedOptions.join(', ') });
+      console.log('Sexuality saved:', selectedOptions);
+      router.push('/(onboarding)/screens/RelationshipTypeScreen');
+    }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">Notification preferences</H1>
+          <H1 className="self-start">Who are you attracted to?</H1>
           <Muted className="flex">
-            Choose what notifications you'd like to receive.
+            Select all that apply to help us find better matches.
           </Muted>
         </View>
 
         <View className="gap-3">
-          {notificationOptions.map((option) => (
+          {sexualityOptions.map((option) => (
             <Button
               key={option}
               variant={selectedOptions.includes(option) ? "default" : "outline"}
@@ -62,6 +66,7 @@ export default function NotificationsScreen() {
           size="default"
           variant="default"
           onPress={handleNext}
+          disabled={selectedOptions.length === 0}
         >
           <Text>Next</Text>
         </Button>

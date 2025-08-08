@@ -7,19 +7,21 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
 
-const drinkingOptions = [
-  'Yes',
-  'Sometimes',
-  "I don't drink"
+const datingIntentionOptions = [
+  'Casual dating',
+  'Serious relationship',
+  'Friendship',
+  'Marriage',
+  'Not sure yet'
 ];
 
-export default function DrinkingScreen() {
-  const [selectedOption, setSelectedOption] = useState('');
+export default function DatingIntentionScreen() {
+  const [selectedIntention, setSelectedIntention] = useState('');
 
   const handleNext = () => {
-    if (selectedOption) {
-      console.log('Drinking preference:', selectedOption);
-      router.push('/onboarding/screens/SmokingScreen');
+    if (selectedIntention) {
+      console.log('Dating intention:', selectedIntention);
+      router.push('/(onboarding)/screens/HeightScreen');
     }
   };
 
@@ -27,21 +29,21 @@ export default function DrinkingScreen() {
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">Do you drink?</H1>
+          <H1 className="self-start">What is your dating intention?</H1>
           <Muted className="flex">
-            This helps us match you with people who have similar lifestyle preferences.
+            This helps us match you with people looking for the same thing.
           </Muted>
         </View>
 
         <View className="gap-3">
-          {drinkingOptions.map((option) => (
+          {datingIntentionOptions.map((option) => (
             <Button
               key={option}
-              variant={selectedOption === option ? "default" : "outline"}
+              variant={selectedIntention === option ? "default" : "outline"}
               className="w-full justify-start"
-              onPress={() => setSelectedOption(option)}
+              onPress={() => setSelectedIntention(option)}
             >
-              <Text className={selectedOption === option ? "text-white" : ""}>
+              <Text className={selectedIntention === option ? "text-white" : ""}>
                 {option}
               </Text>
             </Button>
@@ -54,7 +56,7 @@ export default function DrinkingScreen() {
           size="default"
           variant="default"
           onPress={handleNext}
-          disabled={!selectedOption}
+          disabled={!selectedIntention}
         >
           <Text>Next</Text>
         </Button>

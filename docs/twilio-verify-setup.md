@@ -16,7 +16,7 @@ The app now uses phone verification instead of traditional email/password authen
 
 ### New Files:
 - `app/(public)/phone-verify.tsx` - Phone verification screen
-- `app/(public)/onboarding.tsx` - Onboarding screen for new users
+- `app/(onboarding)/` - Onboarding screens for new users
 - `api/verify/send.ts` - Backend API for sending verification codes
 - `api/verify/check.ts` - Backend API for checking verification codes
 

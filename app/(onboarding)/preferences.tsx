@@ -29,7 +29,8 @@ export default function Preferences() {
 	const handleContinue = () => {
 		// Store preferences in onboarding context
 		updatePreferences(selectedPreferences);
-		router.push("/onboarding/complete");
+		console.log("Preferences saved:", selectedPreferences);
+		router.push("/(onboarding)/complete");
 	};
 
 	return (

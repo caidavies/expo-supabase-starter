@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { View, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 
 import { SafeAreaView } from '@/components/safe-area-view';
 import { Button } from '@/components/ui/button';
-import { FormInput } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
 
-export default function FirstNameScreen() {
-  const [firstName, setFirstName] = useState('');
+export default function HeightScreen() {
+  const [height, setHeight] = useState('');
 
   const handleNext = () => {
-    if (firstName.trim()) {
-      // Store the first name and navigate to next screen
-      console.log('First name:', firstName);
-      router.push('/onboarding/screens/DobScreen');
+    if (height.trim()) {
+      console.log('Height:', height);
+      router.push('/(onboarding)/screens/FamilyPlansScreen');
     }
   };
 
@@ -24,25 +23,23 @@ export default function FirstNameScreen() {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={16}
       >
         <View className="flex-1 gap-6 py-24 web:m-4">
           <View className="gap-4">
-            <H1 className="self-start">What&apos;s your first name?</H1>
+            <H1 className="self-start">What's your height?</H1>
             <Muted className="flex">
-              This is how you&apos;ll appear to others.
+              This helps us find better matches for you.
             </Muted>
           </View>
 
           <View className="gap-4">
-            <FormInput
-              label="First Name"
-              placeholder="Enter your first name"
-              value={firstName}
-              onChangeText={setFirstName}
-              autoCapitalize="words"
-              autoComplete="given-name"
-              autoCorrect={false}
+            <Input
+              placeholder="Enter your height in cm"
+              keyboardType="numeric"
+              value={height}
+              onChangeText={setHeight}
+              className="text-center text-lg"
             />
           </View>
         </View>
@@ -52,7 +49,7 @@ export default function FirstNameScreen() {
             size="default"
             variant="default"
             onPress={handleNext}
-            disabled={!firstName.trim()}
+            disabled={!height.trim()}
           >
             <Text>Next</Text>
           </Button>

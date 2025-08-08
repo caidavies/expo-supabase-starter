@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -8,52 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { useAuth } from "@/context/supabase-provider";
-import { supabase } from "@/config/supabase";
 
 export default function WelcomeScreen() {
 	const router = useRouter();
 	const { colorScheme } = useColorScheme();
-	const { session, checkUserPreferences } = useAuth();
 	
 	const appIcon =
 		colorScheme === "dark"
 			? require("@/assets/icon.png")
 			: require("@/assets/icon-dark.png");
-
-	useEffect(() => {
-		const checkUserState = async () => {
-			if (session?.user) {
-				console.log("User has session in welcome screen - checking onboarding status");
-				
-				// Check if user exists in database
-				const { data: existingUser } = await supabase
-					.from("users")
-					.select("*")
-					.eq("auth_user_id", session.user.id)
-					.single();
-
-				if (existingUser) {
-					// Check if user has preferences
-					const hasPreferences = await checkUserPreferences();
-					console.log("Has preferences:", hasPreferences);
-
-					if (!hasPreferences) {
-						console.log("User needs onboarding - redirecting");
-						router.replace("/onboarding/welcome");
-					} else {
-						console.log("User has preferences - redirecting to protected area");
-						router.replace("/(protected)/(tabs)");
-					}
-				} else {
-					console.log("User not in database - redirecting to onboarding");
-					router.replace("/onboarding/welcome");
-				}
-			}
-		};
-
-		checkUserState();
-	}, [session, checkUserPreferences, router]);
 
 	return (
 		<SafeAreaView className="flex flex-1 bg-background p-4">

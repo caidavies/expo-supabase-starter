@@ -7,19 +7,22 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
 
-const smokingOptions = [
-  'Yes',
-  'Sometimes',
-  'No'
+const relationshipTypeOptions = [
+  'Monogamous',
+  'Polyamorous',
+  'Open relationship',
+  'Casual dating',
+  'Friends with benefits',
+  'Not sure yet'
 ];
 
-export default function SmokingScreen() {
-  const [selectedOption, setSelectedOption] = useState('');
+export default function RelationshipTypeScreen() {
+  const [selectedType, setSelectedType] = useState('');
 
   const handleNext = () => {
-    if (selectedOption) {
-      console.log('Smoking preference:', selectedOption);
-      router.push('/onboarding/screens/DrinkingScreen');
+    if (selectedType) {
+      console.log('Relationship type:', selectedType);
+      router.push('/(onboarding)/screens/DatingIntentionScreen');
     }
   };
 
@@ -27,21 +30,21 @@ export default function SmokingScreen() {
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">Do you smoke?</H1>
+          <H1 className="self-start">What type of relationship are you looking for?</H1>
           <Muted className="flex">
-            This helps us match you with people who have similar lifestyle preferences.
+            This helps us match you with people who want the same type of relationship.
           </Muted>
         </View>
 
         <View className="gap-3">
-          {smokingOptions.map((option) => (
+          {relationshipTypeOptions.map((option) => (
             <Button
               key={option}
-              variant={selectedOption === option ? "default" : "outline"}
+              variant={selectedType === option ? "default" : "outline"}
               className="w-full justify-start"
-              onPress={() => setSelectedOption(option)}
+              onPress={() => setSelectedType(option)}
             >
-              <Text className={selectedOption === option ? "text-white" : ""}>
+              <Text className={selectedType === option ? "text-white" : ""}>
                 {option}
               </Text>
             </Button>
@@ -54,7 +57,7 @@ export default function SmokingScreen() {
           size="default"
           variant="default"
           onPress={handleNext}
-          disabled={!selectedOption}
+          disabled={!selectedType}
         >
           <Text>Next</Text>
         </Button>
