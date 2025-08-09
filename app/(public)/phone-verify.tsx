@@ -25,7 +25,7 @@ const otpSchema = z.object({
 });
 
 export default function PhoneVerify() {
-	const { verifyPhone, verifyOTP, session, checkUserPreferences } = useAuth();
+	const { verifyPhone, verifyOTP, session } = useAuth();
 	const [isOTPSent, setIsOTPSent] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [phoneNumber, setPhoneNumber] = useState('');

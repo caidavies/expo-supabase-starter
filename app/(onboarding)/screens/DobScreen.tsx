@@ -9,21 +9,46 @@ import { Label } from "@/components/ui/label";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import { useAuth } from "@/context/supabase-provider";
 
 export default function DobScreen() {
 	const [day, setDay] = useState("");
 	const [month, setMonth] = useState("");
 	const [year, setYear] = useState("");
-	const { updateProfile } = useOnboarding();
+	const [isCreating, setIsCreating] = useState(false);
+	const { updateUser, data } = useOnboarding();
+	const { createUserProfile } = useAuth();
 
-	const handleNext = () => {
+	const handleNext = async () => {
 		if (day.trim() && month.trim() && year.trim()) {
-			// Store the date of birth in onboarding context
-			updateProfile({
-				dateOfBirth: { day, month, year },
-			});
-			console.log("Date of birth saved:", { day, month, year });
-			router.push("/(onboarding)/screens/GenderScreen");
+			try {
+				setIsCreating(true);
+
+				// Store the date of birth in onboarding context
+				const dateOfBirth = { day, month, year };
+				updateUser({ dateOfBirth });
+				console.log("Date of birth saved:", dateOfBirth);
+
+				// Get first name from onboarding context
+				const firstName = data.user?.firstName;
+				if (!firstName) {
+					throw new Error(
+						"First name not found - please go back and enter your first name",
+					);
+				}
+
+				// Create user record in database now that we have required fields
+				await createUserProfile(firstName, dateOfBirth);
+				console.log("User profile created successfully");
+
+				router.push("/(onboarding)/screens/GenderScreen");
+			} catch (error) {
+				console.error("Error creating user profile:", error);
+				// Still allow navigation to continue onboarding
+				router.push("/(onboarding)/screens/GenderScreen");
+			} finally {
+				setIsCreating(false);
+			}
 		}
 	};
 
@@ -83,9 +108,11 @@ export default function DobScreen() {
 						size="default"
 						variant="default"
 						onPress={handleNext}
-						disabled={!day.trim() || !month.trim() || !year.trim()}
+						disabled={
+							!day.trim() || !month.trim() || !year.trim() || isCreating
+						}
 					>
-						<Text>Next</Text>
+						<Text>{isCreating ? "Creating Profile..." : "Next"}</Text>
 					</Button>
 				</View>
 			</KeyboardAvoidingView>

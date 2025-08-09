@@ -5,8 +5,11 @@ import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
+import { useAuth } from "@/context/supabase-provider";
 
 export default function Welcome() {
+	const { signOut } = useAuth();
+
 	return (
 		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
 			<View className="flex-1 gap-8 py-24 web:m-4">
@@ -47,14 +50,26 @@ export default function Welcome() {
 				</View>
 			</View>
 
-			<Button
-				size="default"
-				variant="default"
-				onPress={() => router.push("/screens/FirstNameScreen")}
-				className="web:m-4"
-			>
-				<Text>Get Started</Text>
-			</Button>
+			<View className="gap-4 web:m-4">
+				<Button
+					size="default"
+					variant="default"
+					onPress={() => router.push("/screens/FirstNameScreen")}
+				>
+					<Text>Get Started</Text>
+				</Button>
+				
+				<Button
+					size="default"
+					variant="destructive"
+					onPress={async () => {
+						console.log("Clearing session from onboarding welcome...");
+						await signOut();
+					}}
+				>
+					<Text>🚪 Clear Session & Sign Out</Text>
+				</Button>
+			</View>
 		</SafeAreaView>
 	);
 } 

@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { useAuth } from "@/context/supabase-provider";
 
 export default function WelcomeScreen() {
 	const router = useRouter();
 	const { colorScheme } = useColorScheme();
+	const { signOut, session } = useAuth();
 	
 	const appIcon =
 		colorScheme === "dark"
@@ -38,6 +40,19 @@ export default function WelcomeScreen() {
 				>
 					<Text>Continue with Phone</Text>
 				</Button>
+				
+				{session && (
+					<Button
+						size="default"
+						variant="destructive"
+						onPress={async () => {
+							console.log("Clearing session from welcome screen...");
+							await signOut();
+						}}
+					>
+						<Text>🚪 Clear Session & Sign Out</Text>
+					</Button>
+				)}
 			</View>
 		</SafeAreaView>
 	);

@@ -12,12 +12,12 @@ import { useOnboarding } from "@/context/onboarding-provider";
 
 export default function FirstNameScreen() {
 	const [firstName, setFirstName] = useState("");
-	const { updateProfile } = useOnboarding();
+	const { updateUser } = useOnboarding();
 
 	const handleNext = () => {
 		if (firstName.trim()) {
 			// Store the first name in onboarding context
-			updateProfile({ firstName });
+			updateUser({ firstName });
 			console.log("First name saved:", firstName);
 			router.push("/(onboarding)/screens/DobScreen");
 		}

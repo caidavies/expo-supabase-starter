@@ -19,6 +19,10 @@ type AuthState = {
 	verifyPhone: (phone: string) => Promise<void>;
 	verifyOTP: (otp: string, phone: string) => Promise<void>;
 	completeOnboarding: (onboardingData: any) => Promise<void>;
+	createUserProfile: (
+		firstName: string,
+		dateOfBirth: { day: string; month: string; year: string },
+	) => Promise<void>;
 	saveUserProfile: (profileData: any) => Promise<void>;
 	saveDatingPreferences: (preferences: any) => Promise<void>;
 	saveAppPreferences: (preferences: any) => Promise<void>;
@@ -35,6 +39,7 @@ export const AuthContext = createContext<AuthState>({
 	verifyPhone: async () => {},
 	verifyOTP: async () => {},
 	completeOnboarding: async () => {},
+	createUserProfile: async () => {},
 	saveUserProfile: async () => {},
 	saveDatingPreferences: async () => {},
 	saveAppPreferences: async () => {},
@@ -87,13 +92,22 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	};
 
 	const signOut = async () => {
-		const { error } = await supabase.auth.signOut();
+		try {
+			const { error } = await supabase.auth.signOut();
 
-		if (error) {
-			console.error("Error signing out:", error);
-			return;
-		} else {
-			console.log("User signed out");
+			if (error) {
+				console.error("Error signing out:", error);
+				// Force clear session even if signOut fails
+				setSession(null);
+				return;
+			} else {
+				console.log("User signed out");
+				setSession(null);
+			}
+		} catch (error) {
+			console.error("Sign out error:", error);
+			// Force clear session
+			setSession(null);
 		}
 	};
 
@@ -102,7 +116,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			console.log("Sending verification code to:", phone);
 
 			// Use Supabase's built-in phone verification
-			const { data, error } = await supabase.auth.signInWithOtp({
+			const { error } = await supabase.auth.signInWithOtp({
 				phone: phone,
 			});
 
@@ -146,12 +160,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				console.log("OTP verified successfully");
 				setSession(data.session);
 
-							// Check if user exists in users table
-			const { data: existingUser, error: userError } = await supabase
-				.from("users")
-				.select("*")
-				.eq("auth_user_id", data.user?.id)
-				.single();
+				// Check if user exists in users table
+				const { data: existingUser, error: userError } = await supabase
+					.from("users")
+					.select("*")
+					.eq("auth_user_id", data.user?.id)
+					.single();
 
 				if (userError && userError.code !== "PGRST116") {
 					console.error("Error checking user profile:", userError);
@@ -160,22 +174,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				const isNewUser = !existingUser;
 
 				if (isNewUser) {
-					console.log("New user detected - creating user record");
+					console.log(
+						"New user detected - will create user record after onboarding data collection",
+					);
 					console.log("New user - will redirect to onboarding");
-					
-					// Create user record since no trigger exists for this
-					const { error: createError } = await supabase
-						.from("users")
-						.insert({
-							auth_user_id: data.user?.id,
-							email: data.user?.email,
-							created_at: new Date().toISOString(),
-							updated_at: new Date().toISOString(),
-						});
-					
-					if (createError) {
-						console.error("Error creating user record:", createError);
-					}
+					// User record will be created after first name + DOB are collected
 					// Navigation will be handled in the component
 				} else {
 					console.log("Existing user - already signed in");
@@ -202,6 +205,55 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		}
 	};
 
+	const createUserProfile = async (
+		firstName: string,
+		dateOfBirth: { day: string; month: string; year: string },
+	) => {
+		try {
+			console.log("Creating user profile with:", { firstName, dateOfBirth });
+
+			if (!session?.user) {
+				throw new Error("No authenticated user found");
+			}
+
+			// Check if user already exists
+			const { data: existingUser } = await supabase
+				.from("users")
+				.select("id")
+				.eq("auth_user_id", session.user.id)
+				.single();
+
+			if (existingUser) {
+				console.log("User already exists, skipping creation");
+				return;
+			}
+
+			// Format date for SQL
+			const birthdate = `${dateOfBirth.year}-${dateOfBirth.month.padStart(2, "0")}-${dateOfBirth.day.padStart(2, "0")}`;
+
+			// Create user record with minimal required data
+			const { error: createError } = await supabase.from("users").insert({
+				auth_user_id: session.user.id,
+				email: session.user.email,
+				first_name: firstName,
+				birthdate: birthdate,
+				gender: "other", // Default, will be updated in next screen
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			});
+
+			if (createError) {
+				console.error("Error creating user record:", createError);
+				throw new Error(`Failed to create user record: ${createError.message}`);
+			} else {
+				console.log("User record created successfully");
+			}
+		} catch (error) {
+			console.error("Error creating user profile:", error);
+			throw error;
+		}
+	};
+
 	const completeOnboarding = async (onboardingData: any) => {
 		try {
 			console.log("Completing onboarding with data:", onboardingData);
@@ -210,17 +262,26 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				throw new Error("No authenticated user found");
 			}
 
-			// Save core user data
+			// Update core user data (user should already exist from createUserProfile)
 			if (onboardingData.user) {
+				// Map gender to valid enum values
+				const mapGender = (gender: string) => {
+					if (!gender) return "other";
+					const lowerGender = gender.toLowerCase();
+					if (["male", "female", "non-binary", "other"].includes(lowerGender)) {
+						return lowerGender;
+					}
+					return "other"; // fallback
+				};
+
 				const userData = {
-					first_name: onboardingData.user.firstName,
-					last_name: onboardingData.user.lastName,
-					birthdate: onboardingData.user.dateOfBirth ? 
-						`${onboardingData.user.dateOfBirth.year}-${onboardingData.user.dateOfBirth.month.padStart(2, '0')}-${onboardingData.user.dateOfBirth.day.padStart(2, '0')}` : null,
-					gender: onboardingData.user.gender?.toLowerCase(),
-					current_location: onboardingData.user.currentLocation,
+					last_name: onboardingData.user.lastName || null,
+					gender: mapGender(onboardingData.user.gender),
+					current_location: onboardingData.user.currentLocation || null,
 					updated_at: new Date().toISOString(),
 				};
+
+				console.log("Updating user data payload:", userData);
 
 				const { error: userError } = await supabase
 					.from("users")
@@ -230,6 +291,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				if (userError) {
 					console.error("Error updating user:", userError);
 					throw new Error("Failed to update user");
+				} else {
+					console.log("User data updated successfully");
 				}
 			}
 
@@ -285,20 +348,27 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			if (!user) throw new Error("User not found");
 
+			// Map profile data to database schema
+			const profilePayload = {
+				user_id: user.id,
+				bio: profileData.bio || null,
+				height_cm: profileData.height
+					? parseInt(profileData.height.replace(/\D/g, "")) || null
+					: null,
+				hometown: profileData.hometown || null,
+				work: profileData.work || null,
+				education: profileData.education || null,
+				religion: profileData.religion || null,
+				drinking: profileData.drinking || null,
+				smoking: profileData.smoking || null,
+				updated_at: new Date().toISOString(),
+			};
+
+			console.log("Profile payload:", profilePayload);
+
 			const { error } = await supabase
 				.from("user_profiles")
-				.upsert({
-					user_id: user.id,
-					bio: profileData.bio,
-					height_cm: profileData.height ? parseInt(profileData.height) : null,
-					hometown: profileData.hometown,
-					work: profileData.work,
-					education: profileData.education,
-					religion: profileData.religion,
-					drinking: profileData.drinking,
-					smoking: profileData.smoking,
-					updated_at: new Date().toISOString(),
-				});
+				.upsert(profilePayload);
 
 			if (error) throw new Error("Failed to save profile");
 			console.log("Profile saved successfully");
@@ -324,23 +394,55 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			if (!user) throw new Error("User not found");
 
+			// Map relationship type to valid enum values
+			const mapRelationshipType = (type: string) => {
+				if (!type) return null;
+				const lowerType = type.toLowerCase();
+				if (lowerType.includes("monogamous") || lowerType.includes("exclusive"))
+					return "monogamous";
+				if (lowerType.includes("open")) return "open";
+				if (lowerType.includes("poly")) return "polyamorous";
+				return "monogamous"; // default
+			};
+
+			// Map dating intention to valid enum values
+			const mapDatingIntention = (intention: string) => {
+				if (!intention) return null;
+				const lowerIntention = intention.toLowerCase();
+				if (
+					lowerIntention.includes("serious") ||
+					lowerIntention.includes("relationship")
+				)
+					return "serious";
+				if (lowerIntention.includes("casual")) return "casual";
+				if (lowerIntention.includes("fun") || lowerIntention.includes("hookup"))
+					return "fun";
+				if (lowerIntention.includes("long") || lowerIntention.includes("term"))
+					return "long_term";
+				return "casual"; // default
+			};
+
+			const datingPayload = {
+				user_id: user.id,
+				sexuality: preferences.sexuality || null,
+				relationship_type: mapRelationshipType(preferences.relationshipType),
+				dating_intention: mapDatingIntention(preferences.datingIntention),
+				smoking_preference: preferences.smokingPreference || null,
+				drinking_preference: preferences.drinkingPreference || null,
+				children_preference: preferences.childrenPreference || null,
+				pet_preference: preferences.petPreference || null,
+				religion_importance: preferences.religionImportance || null,
+				max_distance_km: preferences.maxDistance || 20,
+				age_range_min: preferences.ageRangeMin || 18,
+				age_range_max: preferences.ageRangeMax || 65,
+				updated_at: new Date().toISOString(),
+			};
+
+			console.log("Dating preferences payload:", datingPayload);
+
 			const { error } = await supabase
 				.from("user_dating_preferences")
-				.upsert({
-					user_id: user.id,
-					sexuality: preferences.sexuality,
-					relationship_type: preferences.relationshipType?.toLowerCase(),
-					dating_intention: preferences.datingIntention?.toLowerCase(),
-					smoking_preference: preferences.smokingPreference,
-					drinking_preference: preferences.drinkingPreference,
-					children_preference: preferences.childrenPreference,
-					pet_preference: preferences.petPreference,
-					religion_importance: preferences.religionImportance,
-					max_distance_km: preferences.maxDistance || 20,
-					age_range_min: preferences.ageRangeMin || 18,
-					age_range_max: preferences.ageRangeMax || 65,
-					updated_at: new Date().toISOString(),
-				});
+				.upsert(datingPayload);
 
 			if (error) throw new Error("Failed to save dating preferences");
 			console.log("Dating preferences saved successfully");
@@ -366,16 +468,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			if (!user) throw new Error("User not found");
 
+			const appPayload = {
+				user_id: user.id,
+				push_notifications: preferences.pushNotifications ?? true,
+				email_notifications: preferences.emailNotifications ?? false,
+				marketing_emails: preferences.marketingEmails ?? false,
+				analytics_sharing: preferences.analyticsSharing ?? false,
+				updated_at: new Date().toISOString(),
+			};
+
+			console.log("App preferences payload:", appPayload);
+
 			const { error } = await supabase
 				.from("user_app_preferences")
-				.upsert({
-					user_id: user.id,
-					push_notifications: preferences.pushNotifications ?? true,
-					email_notifications: preferences.emailNotifications ?? false,
-					marketing_emails: preferences.marketingEmails ?? false,
-					analytics_sharing: preferences.analyticsSharing ?? false,
-					updated_at: new Date().toISOString(),
-				});
+				.upsert(appPayload);
 
 			if (error) throw new Error("Failed to save app preferences");
 			console.log("App preferences saved successfully");
@@ -402,37 +508,61 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			if (!user) throw new Error("User not found");
 
 			// First, remove existing interests
-			await supabase
-				.from("user_interests")
-				.delete()
-				.eq("user_id", user.id);
+			await supabase.from("user_interests").delete().eq("user_id", user.id);
 
 			// Then add new interests
+			console.log("Processing interests:", interests);
+
 			for (const interestName of interests) {
+				if (!interestName || typeof interestName !== "string") {
+					console.warn("Skipping invalid interest:", interestName);
+					continue;
+				}
+
 				// Find or create interest
-				let { data: interest } = await supabase
+				let { data: interest, error: findError } = await supabase
 					.from("interests")
 					.select("id")
-					.eq("name", interestName)
+					.eq("name", interestName.trim())
 					.single();
 
+				if (findError && findError.code !== "PGRST116") {
+					console.error("Error finding interest:", findError);
+					continue;
+				}
+
 				if (!interest) {
-					const { data: newInterest } = await supabase
+					console.log("Creating new interest:", interestName);
+					const { data: newInterest, error: createError } = await supabase
 						.from("interests")
-						.insert({ name: interestName, category: "other" })
+						.insert({
+							name: interestName.trim(),
+							category: "other",
+						})
 						.select("id")
 						.single();
+
+					if (createError) {
+						console.error("Error creating interest:", createError);
+						continue;
+					}
 					interest = newInterest;
 				}
 
 				if (interest) {
-					await supabase
+					const { error: linkError } = await supabase
 						.from("user_interests")
 						.insert({
 							user_id: user.id,
 							interest_id: interest.id,
 							intensity_level: 3,
 						});
+
+					if (linkError) {
+						console.error("Error linking user interest:", linkError);
+					} else {
+						console.log("Linked interest:", interestName);
+					}
 				}
 			}
 
@@ -479,7 +609,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				.single();
 
 			// User has completed onboarding if they have at least profile and dating preferences
-			const hasCompletedOnboarding = !!(profile && datingPrefs);
+			const hasCompletedOnboarding = !!(profile && datingPrefs && appPrefs);
 			console.log("Has completed onboarding:", hasCompletedOnboarding);
 			return hasCompletedOnboarding;
 		} catch (error) {
@@ -489,15 +619,46 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	};
 
 	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			setSession(session);
-		});
+		const initializeAuth = async () => {
+			try {
+				const {
+					data: { session },
+					error,
+				} = await supabase.auth.getSession();
 
-		supabase.auth.onAuthStateChange((_event, session) => {
-			setSession(session);
+				if (error) {
+					console.error("Error getting session:", error);
+					// Clear any corrupted session
+					await supabase.auth.signOut();
+					setSession(null);
+				} else {
+					setSession(session);
+				}
+			} catch (error) {
+				console.error("Auth initialization error:", error);
+				setSession(null);
+			}
+		};
+
+		initializeAuth();
+
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange(async (event, session) => {
+			console.log("Auth state changed:", event, session?.user?.id);
+
+			if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+				setSession(session);
+			} else if (event === "SIGNED_IN") {
+				setSession(session);
+			} else {
+				setSession(session);
+			}
 		});
 
 		setInitialized(true);
+
+		return () => subscription.unsubscribe();
 	}, []);
 
 	return (
@@ -511,6 +672,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				verifyPhone,
 				verifyOTP,
 				completeOnboarding,
+				createUserProfile,
 				saveUserProfile,
 				saveDatingPreferences,
 				saveAppPreferences,
