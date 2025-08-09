@@ -266,6 +266,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			if (onboardingData.user) {
 				// Map gender to valid enum values
 				const mapGender = (gender: string) => {
+					console.log("Mapping gender:", gender);
 					if (!gender) return "other";
 					const lowerGender = gender.toLowerCase();
 					if (["male", "female", "non-binary", "other"].includes(lowerGender)) {
@@ -304,10 +305,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				.single();
 
 			if (!user) throw new Error("User not found");
-
+			console.log("Onboarding Data:", onboardingData);
 			// Save extended profile
 			if (onboardingData.profile) {
+				console.log("Profile data exists, calling saveUserProfile...");
 				await saveUserProfile(onboardingData.profile);
+			} else {
+				console.log("WARNING: No profile data found in onboarding data");
 			}
 
 			// Save dating preferences
@@ -335,6 +339,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const saveUserProfile = async (profileData: any) => {
 		try {
 			console.log("=== SAVING USER PROFILE ===");
+			console.log(
+				"Raw profile data received:",
+				JSON.stringify(profileData, null, 2),
+			);
 
 			if (!session?.user) {
 				throw new Error("No authenticated user found");
@@ -347,6 +355,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				.single();
 
 			if (!user) throw new Error("User not found");
+
+			console.log("User ID for profile operations:", user.id);
+			console.log("Session user ID:", session.user.id);
+
+			// Verify this user_id exists in users table
+			const { data: userVerification } = await supabase
+				.from("users")
+				.select("id, auth_user_id")
+				.eq("id", user.id)
+				.single();
+			console.log("User verification:", userVerification);
 
 			// Map profile data to database schema
 			const profilePayload = {
@@ -366,11 +385,67 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			console.log("Profile payload:", profilePayload);
 
-			const { error } = await supabase
+			// Check if profile already exists
+			const { data: existingProfile, error: checkError } = await supabase
 				.from("user_profiles")
-				.upsert(profilePayload);
+				.select("*")
+				.eq("user_id", user.id)
+				.single();
 
-			if (error) throw new Error("Failed to save profile");
+			console.log("Profile existence check:");
+			console.log("- Error:", checkError);
+			console.log("- Error code:", checkError?.code);
+			console.log("- Data found:", existingProfile);
+
+			// PGRST116 means "not found" which is fine
+			if (checkError && checkError.code !== "PGRST116") {
+				console.error("Error checking existing profile:", checkError);
+				throw new Error(`Failed to check existing profile: ${checkError.message}`);
+			}
+
+			const profileExists = !checkError && existingProfile;
+			console.log("Profile exists:", profileExists);
+
+			let error;
+			if (profileExists) {
+				console.log("Updating existing profile...");
+				console.log("Current profile data:", JSON.stringify(existingProfile, null, 2));
+				
+				// Update existing profile
+				const updateData = { ...profilePayload };
+				delete updateData.user_id; // Don't try to update the foreign key
+				
+				console.log("Update data being sent:", JSON.stringify(updateData, null, 2));
+
+				const result = await supabase
+					.from("user_profiles")
+					.update(updateData)
+					.eq("user_id", user.id)
+					.select(); // Return the updated data
+				
+				// Check if any rows were affected
+				if (result.data && result.data.length === 0) {
+					console.warn("No rows were updated - this might be an RLS policy issue");
+				}
+
+				error = result.error;
+				console.log("Update result:", JSON.stringify(result, null, 2));
+			} else {
+				console.log("Creating new profile...");
+				// Create new profile
+				const result = await supabase
+					.from("user_profiles")
+					.insert(profilePayload)
+					.select(); // Return the inserted data
+
+				error = result.error;
+				console.log("Insert result:", JSON.stringify(result, null, 2));
+			}
+
+			if (error) {
+				console.error("Supabase error details:", error);
+				throw new Error(`Failed to save profile: ${error.message}`);
+			}
 			console.log("Profile saved successfully");
 		} catch (error) {
 			console.error("Error saving profile:", error);
@@ -440,11 +515,36 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			console.log("Dating preferences payload:", datingPayload);
 
-			const { error } = await supabase
+			// Check if dating preferences already exist
+			const { data: existingPrefs } = await supabase
 				.from("user_dating_preferences")
-				.upsert(datingPayload);
+				.select("id")
+				.eq("user_id", user.id)
+				.single();
 
-			if (error) throw new Error("Failed to save dating preferences");
+			let error;
+			if (existingPrefs) {
+				console.log("Updating existing dating preferences...");
+				const updateData = { ...datingPayload };
+				delete updateData.user_id;
+
+				const result = await supabase
+					.from("user_dating_preferences")
+					.update(updateData)
+					.eq("user_id", user.id);
+				error = result.error;
+			} else {
+				console.log("Creating new dating preferences...");
+				const result = await supabase
+					.from("user_dating_preferences")
+					.insert(datingPayload);
+				error = result.error;
+			}
+
+			if (error) {
+				console.error("Dating preferences error:", error);
+				throw new Error(`Failed to save dating preferences: ${error.message}`);
+			}
 			console.log("Dating preferences saved successfully");
 		} catch (error) {
 			console.error("Error saving dating preferences:", error);
@@ -479,11 +579,36 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			console.log("App preferences payload:", appPayload);
 
-			const { error } = await supabase
+			// Check if app preferences already exist
+			const { data: existingAppPrefs } = await supabase
 				.from("user_app_preferences")
-				.upsert(appPayload);
+				.select("id")
+				.eq("user_id", user.id)
+				.single();
 
-			if (error) throw new Error("Failed to save app preferences");
+			let error;
+			if (existingAppPrefs) {
+				console.log("Updating existing app preferences...");
+				const updateData = { ...appPayload };
+				delete updateData.user_id;
+
+				const result = await supabase
+					.from("user_app_preferences")
+					.update(updateData)
+					.eq("user_id", user.id);
+				error = result.error;
+			} else {
+				console.log("Creating new app preferences...");
+				const result = await supabase
+					.from("user_app_preferences")
+					.insert(appPayload);
+				error = result.error;
+			}
+
+			if (error) {
+				console.error("App preferences error:", error);
+				throw new Error(`Failed to save app preferences: ${error.message}`);
+			}
 			console.log("App preferences saved successfully");
 		} catch (error) {
 			console.error("Error saving app preferences:", error);
