@@ -54,12 +54,12 @@ export default function Welcome() {
 				<Button
 					size="default"
 					variant="default"
-					onPress={() => router.push("/screens/FirstNameScreen")}
+					onPress={() => router.push("/screens/PhotoSelectionScreen")}
 				>
 					<Text>Get Started</Text>
 				</Button>
 				
-				<Button
+				{/* <Button
 					size="default"
 					variant="destructive"
 					onPress={async () => {
@@ -68,7 +68,7 @@ export default function Welcome() {
 					}}
 				>
 					<Text>🚪 Clear Session & Sign Out</Text>
-				</Button>
+				</Button> */}
 			</View>
 		</SafeAreaView>
 	);
