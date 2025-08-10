@@ -20,15 +20,25 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import { supabase } from "@/config/supabase";
 
 interface PhotoItem {
 	uri: string;
 	id: string;
 }
 
+interface UploadedPhoto {
+	uri: string;
+	storagePath: string;
+	order: number;
+	isMain: boolean;
+}
+
 export default function PhotoSelectionScreen() {
 	const [photos, setPhotos] = useState<PhotoItem[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [isUploading, setIsUploading] = useState(false);
+	const [uploadProgress, setUploadProgress] = useState(0);
 	const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 	const { updateProfile } = useOnboarding();
 
@@ -95,7 +105,124 @@ export default function PhotoSelectionScreen() {
 		setPhotos(newPhotos);
 	};
 
-	const handleNext = () => {
+	const uploadPhotoToStorage = async (
+		photo: PhotoItem,
+		index: number,
+	): Promise<UploadedPhoto> => {
+		try {
+			// For React Native, we need to handle the file differently
+			// The URI is a local file path, not a web URL
+			const fileExt = photo.uri.split(".").pop() || "jpg";
+			const fileName = `${Date.now()}_${index}_${Math.random()
+				.toString(36)
+				.substring(7)}.${fileExt}`;
+			const storagePath = `user-photos/${fileName}`;
+
+			// Convert local URI to blob using a different approach
+			let blob: Blob;
+			try {
+				// First try the fetch approach
+				const response = await fetch(photo.uri);
+				if (!response.ok) {
+					throw new Error(`Fetch failed: ${response.status}`);
+				}
+				blob = await response.blob();
+
+				// Check if blob is empty
+				if (blob.size === 0) {
+					throw new Error("Blob is empty");
+				}
+			} catch (fetchError) {
+				console.warn(
+					"Fetch approach failed, trying alternative method:",
+					fetchError,
+				);
+
+				// Alternative: create a file object from the URI
+				// This is more reliable for React Native
+				const formData = new FormData();
+				formData.append("file", {
+					uri: photo.uri,
+					type: `image/${fileExt}`,
+					name: fileName,
+				} as any);
+
+				// For now, let's use the original approach but with better error handling
+				const response = await fetch(photo.uri);
+				blob = await response.blob();
+
+				if (blob.size === 0) {
+					throw new Error("Image file appears to be empty or corrupted");
+				}
+			}
+
+			console.log(
+				`Uploading photo ${index + 1}, blob size: ${blob.size} bytes`,
+			);
+
+			// Upload to Supabase Storage
+			const { data, error } = await supabase.storage
+				.from("user-photos")
+				.upload(storagePath, blob, {
+					cacheControl: "3600",
+					upsert: false,
+				});
+
+			if (error) {
+				console.error("Upload error details:", error);
+				throw new Error(`Upload failed: ${error.message}`);
+			}
+
+			// Log the upload response data for debugging
+			console.log("Upload successful, response data:", data);
+			console.log("Storage path:", storagePath);
+
+			// Get public URL
+			const { data: urlData } = supabase.storage
+				.from("user-photos")
+				.getPublicUrl(storagePath);
+
+			console.log("Public URL data:", urlData);
+
+			return {
+				uri: urlData.publicUrl,
+				storagePath,
+				order: index + 1,
+				isMain: index === 0,
+			};
+		} catch (error) {
+			console.error(`Error uploading photo ${index + 1}:`, error);
+			throw error;
+		}
+	};
+
+	const uploadAllPhotos = async (): Promise<UploadedPhoto[]> => {
+		const uploadedPhotos: UploadedPhoto[] = [];
+
+		for (let i = 0; i < photos.length; i++) {
+			try {
+				const uploadedPhoto = await uploadPhotoToStorage(photos[i], i);
+				uploadedPhotos.push(uploadedPhoto);
+
+				// Update progress
+				const progress = ((i + 1) / photos.length) * 100;
+				setUploadProgress(progress);
+
+				// Small delay to show progress
+				await new Promise((resolve) => setTimeout(resolve, 100));
+			} catch (error) {
+				const errorMessage =
+					error instanceof Error ? error.message : "Unknown error";
+				throw new Error(
+					`Failed to upload photo ${i + 1}: ${errorMessage}`,
+				);
+			}
+		}
+
+		return uploadedPhotos;
+	};
+
+	const handleNext = async () => {
 		if (photos.length === 0) {
 			Alert.alert("Add Photos", "Please add at least one photo to continue.", [
 				{ text: "OK" },
@@ -103,20 +230,41 @@ export default function PhotoSelectionScreen() {
 			return;
 		}
 
-		// Store photos as a bio field for now (we'll extend the profile type later)
-		const photoData = {
-			bio: JSON.stringify({
-				photos: photos.map((photo, index) => ({
-					uri: photo.uri,
-					order: index + 1,
-					isMain: index === 0, // First photo is main profile photo
-				})),
-			}),
-		};
+		try {
+			setIsUploading(true);
+			setUploadProgress(0);
 
-		updateProfile(photoData);
-		console.log("Photos saved:", photoData);
-		router.push("/(onboarding)/complete"); // Go to complete screen
+			// Upload all photos to Supabase Storage
+			const uploadedPhotos = await uploadAllPhotos();
+
+			// Store photo data in profile context
+			const photoData = {
+				photos: uploadedPhotos.map((photo) => ({
+					uri: photo.uri,
+					storagePath: photo.storagePath,
+					order: photo.order,
+					isMain: photo.isMain,
+				})),
+			};
+
+			updateProfile(photoData);
+			console.log("Photos uploaded and saved:", photoData);
+
+			// Navigate to next screen
+			router.push("/(onboarding)/complete");
+		} catch (error) {
+			console.error("Error uploading photos:", error);
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error";
+			Alert.alert(
+				"Upload Failed",
+				`Failed to upload photos: ${errorMessage}. Please check your connection and try again.`,
+				[{ text: "OK" }],
+			);
+		} finally {
+			setIsUploading(false);
+			setUploadProgress(0);
+		}
 	};
 
 	const DraggablePhoto = ({
@@ -246,7 +394,7 @@ export default function PhotoSelectionScreen() {
 				key={index}
 				className="w-[33%] aspect-[4/5] rounded-lg border-2 border-dashed border-gray-300 bg-gray-50"
 				onPress={pickImage}
-				disabled={isLoading}
+				disabled={isLoading || isUploading}
 				style={{ marginBottom: 12 }}
 			>
 				<View className="flex-1 items-center justify-center">
@@ -298,6 +446,21 @@ export default function PhotoSelectionScreen() {
 								</Text>
 							</View>
 						)}
+
+						{/* Upload Progress */}
+						{isUploading && (
+							<View className="bg-green-50 p-4 rounded-lg mt-4">
+								<Text className="text-sm text-green-800 font-medium mb-2">
+									📤 Uploading photos... {Math.round(uploadProgress)}%
+								</Text>
+								<View className="w-full bg-green-200 rounded-full h-2">
+									<View
+										className="bg-green-600 h-2 rounded-full transition-all duration-300"
+										style={{ width: `${uploadProgress}%` }}
+									/>
+								</View>
+							</View>
+						)}
 					</View>
 				</View>
 			</ScrollView>
@@ -307,16 +470,18 @@ export default function PhotoSelectionScreen() {
 					size="default"
 					variant="default"
 					onPress={handleNext}
-					disabled={photos.length === 0 || isLoading}
+					disabled={photos.length === 0 || isLoading || isUploading}
 				>
 					<Text>
 						{isLoading
 							? "Loading..."
-							: photos.length === 0
-								? "Add photos to continue"
-								: `Continue with ${photos.length} photo${
-										photos.length > 1 ? "s" : ""
-									}`}
+							: isUploading
+								? `Uploading... ${Math.round(uploadProgress)}%`
+								: photos.length === 0
+									? "Add photos to continue"
+									: `Continue with ${photos.length} photo${
+											photos.length > 1 ? "s" : ""
+										}`}
 					</Text>
 				</Button>
 
@@ -324,7 +489,7 @@ export default function PhotoSelectionScreen() {
 					size="default"
 					variant="secondary"
 					onPress={() => router.back()}
-					disabled={isLoading}
+					disabled={isLoading || isUploading}
 				>
 					<Text>Back</Text>
 				</Button>

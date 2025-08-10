@@ -30,6 +30,12 @@ type OnboardingData = {
 		drinking?: string;
 		smoking?: string;
 		pronouns?: string;
+		photos?: Array<{
+			uri: string;
+			storagePath: string;
+			order: number;
+			isMain: boolean;
+		}>;
 	} | null;
 	
 	// Dating preferences
