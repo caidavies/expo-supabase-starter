@@ -7,15 +7,13 @@ import { useInterests } from "@/app/hooks/useInterests"; // expect: { interests,
 type Interest = {
   id: string;
   name: string;
-  icon?: string; // emoji or glyph
+  icon?: string;     // emoji or glyph
+  category?: string; // <-- add this (e.g., "Mindfulness", "Fitness", "Creativity")
 };
 
 const MIN_REQUIRED = 3;
 
 async function submitSelectedInterests(selected: string[]) {
-  // TODO: replace with your API call (e.g., supabase / REST / tRPC)
-  // Example:
-  // await supabase.from('profiles').update({ interests: selected }).eq('id', userId);
   return new Promise((resolve) => setTimeout(resolve, 600));
 }
 
@@ -44,8 +42,6 @@ export default function InterestsScreen() {
     try {
       setSubmitting(true);
       await submitSelectedInterests(selectedInterests);
-      // Navigate onward in your onboarding flow
-      // @ts-ignore – replace "Onboarding.Next" with your actual route
       // navigation.navigate("Onboarding.Next");
     } catch (e: any) {
       Alert.alert("Ops!", "We konden je interesses niet opslaan. Probeer het nog eens.");
@@ -56,10 +52,26 @@ export default function InterestsScreen() {
 
   const onRetry = useCallback(() => {
     if (refetch) return refetch();
-    // Fallback if hook doesn't expose refetch
     Alert.alert("Retry", "Sluit en heropen de app om het nogmaals te proberen.");
   }, [refetch]);
 
+  // --- Group interests by category ---
+  const grouped = useMemo(() => {
+    const map = new Map<string, Interest[]>();
+    const fallback = "Overig"; // "Other"
+    for (const item of interests) {
+      const key = (item.category && item.category.trim()) || fallback;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(item);
+    }
+    // Sort categories alphabetically; inside each, sort by name
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([title, items]) => ({
+        title,
+        items: items.sort((a, b) => a.name.localeCompare(b.name)),
+      }));
+  }, [interests]);
 
   if (loading) {
     return (
@@ -89,26 +101,35 @@ export default function InterestsScreen() {
           <Text className="text-2xl font-bold">What are you into?</Text>
           <Text className="text-gray-500 mt-1">Choose a minimum of {MIN_REQUIRED} interests</Text>
 
-          <View className="flex-row flex-wrap gap-2 mt-6">
-            {interests.map((interest) => {  
-              const selected = selectedInterests.includes(interest.id);
-              return (
-                <Pressable
-                  key={interest.id}
-                  onPress={() => toggleInterest(interest.id)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={`${interest.name}${selected ? " geselecteerd" : ""}`}
-                  className={`px-4 py-2 rounded-full border ${
-                    selected ? "bg-primary border-primary" : "bg-transparent border-gray-300"
-                  }`}
-                >
-                  <Text className={selected ? "text-white" : "text-gray-800"}>
-                    {interest.icon ? `${interest.icon} ` : ""}{interest.name}
-                  </Text>
-                </Pressable>
-              );
-            })}
+          {/* Sections */}
+          <View className="mt-6">
+            {grouped.map((section) => (
+              <View key={section.title} className="mb-8">
+                <Text className="text-lg font-semibold capitalize">{section.title}</Text>
+                <View className="flex-row flex-wrap gap-2 mt-3">
+                  {section.items.map((interest) => {
+                    const selected = selectedInterests.includes(interest.id);
+                    return (
+                      <Pressable
+                        key={interest.id}
+                        onPress={() => toggleInterest(interest.id)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                        accessibilityLabel={`${interest.name}${selected ? " geselecteerd" : ""}`}
+                        className={`px-4 py-2 rounded-full border ${
+                          selected ? "bg-primary border-primary" : "bg-transparent border-gray-300"
+                        }`}
+                      >
+                        <Text className={selected ? "text-white" : "text-gray-800"}>
+                          {interest.icon ? `${interest.icon} ` : ""}
+                          {interest.name}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
           </View>
         </ScrollView>
 
