@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, TouchableOpacity, Alert, ScrollView } from "react-native";
+import { View, Alert, ScrollView, Pressable } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
@@ -338,15 +338,7 @@ export default function PhotoSelectionScreen() {
 	}) => {
 		return (
 			<View
-				style={{
-					width: "33%",
-					aspectRatio: 4 / 5,
-					marginBottom: 12,
-					borderRadius: 8,
-					borderWidth: 2,
-					borderColor: "#e5e7eb",
-				}}
-			>
+				className="w-[33%] aspect-[4/5] rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
 				<View className="flex-1 relative">
 					<Image
 						source={{ uri: photo.uri }}
@@ -358,12 +350,12 @@ export default function PhotoSelectionScreen() {
 							<Text className="text-white text-xs font-semibold">Main</Text>
 						</View>
 					)}
-					<TouchableOpacity
+					<Pressable
 						className="absolute top-2 right-2 bg-red-500 w-6 h-6 rounded-full items-center justify-center"
 						onPress={onRemove}
 					>
 						<Text className="text-white text-xs font-bold">×</Text>
-					</TouchableOpacity>
+					</Pressable>
 				</View>
 			</View>
 		);
@@ -385,7 +377,7 @@ export default function PhotoSelectionScreen() {
 		}
 
 		return (
-			<TouchableOpacity
+			<Pressable
 				key={index}
 				className="w-[33%] aspect-[4/5] rounded-lg border-2 border-dashed border-gray-300 bg-gray-50"
 				onPress={pickImage}
@@ -398,7 +390,7 @@ export default function PhotoSelectionScreen() {
 						{index === 0 ? "Add main photo" : "Add photo"}
 					</Text>
 				</View>
-			</TouchableOpacity>
+			</Pressable>
 		);
 	};
 
