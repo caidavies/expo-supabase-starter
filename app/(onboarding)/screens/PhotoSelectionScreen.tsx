@@ -1,15 +1,9 @@
-import React, { useState, useCallback } from "react";
-import {
-	View,
-	TouchableOpacity,
-	Alert,
-	ScrollView,
-	StyleSheet,
-	Dimensions,
-} from "react-native";
+import React, { useState } from "react";
+import { View, TouchableOpacity, Alert, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
+import * as ImageManipulator from "expo-image-manipulator";
 import { router } from "expo-router";
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
@@ -28,6 +22,7 @@ interface UploadedPhoto {
 	storagePath: string;
 	order: number;
 	isMain: boolean;
+	fileSize?: number;
 }
 
 export default function PhotoSelectionScreen() {
@@ -68,13 +63,54 @@ export default function PhotoSelectionScreen() {
 			const result = await ImagePicker.launchImageLibraryAsync({
 				mediaTypes: "images",
 				allowsEditing: true,
-				aspect: [4, 5], // Dating app standard aspect ratio
+				aspect: [4, 5],
 				quality: 1,
 			});
 
 			if (!result.canceled && result.assets[0]) {
+				// Process the image: resize to 1400px height and convert to PNG with compression
+				let processedImage = await ImageManipulator.manipulateAsync(
+					result.assets[0].uri,
+					[
+						{
+							resize: {
+								height: 1400,
+							},
+						},
+					],
+					{
+						compress: 0.8, // Start with moderate compression
+						format: ImageManipulator.SaveFormat.JPEG,
+					},
+				);
+
+				// Check file size and compress further if needed
+				const fileInfo = await FileSystem.getInfoAsync(processedImage.uri);
+				const targetSizeBytes = 1.5 * 1024 * 1024; // 1.5MB in bytes
+
+				if (fileInfo.exists && 'size' in fileInfo && fileInfo.size && fileInfo.size > targetSizeBytes) {
+					console.log(
+						`Image too large (${(fileInfo.size / 1024 / 1024).toFixed(2)}MB), compressing further...`,
+					);
+
+					// Compress further with lower quality
+					processedImage = await ImageManipulator.manipulateAsync(
+						processedImage.uri,
+						[], // No additional resizing
+						{
+							compress: 0.15, // More aggressive compression
+							format: ImageManipulator.SaveFormat.PNG,
+						},
+					);
+
+					const finalFileInfo = await FileSystem.getInfoAsync(processedImage.uri);
+					console.log(
+						`Final image size: ${('size' in finalFileInfo && finalFileInfo.size ? (finalFileInfo.size / 1024 / 1024).toFixed(2) : 'unknown')}MB`,
+					);
+				}
+
 				const newPhoto: PhotoItem = {
-					uri: result.assets[0].uri,
+					uri: processedImage.uri,
 					id: Date.now().toString(),
 				};
 				setPhotos((prev) => [...prev, newPhoto]);
@@ -97,18 +133,14 @@ export default function PhotoSelectionScreen() {
 		try {
 			// For React Native, we need to handle the file differently
 			// The URI is a local file path, not a web URL
-			const fileExt = photo.uri.split(".").pop() || "jpg";
-			// Normalize file extension and get proper MIME type
-			const normalizedExt = fileExt.toLowerCase() === "jpg" ? "jpeg" : fileExt;
-			const mimeType = `image/${normalizedExt}`;
+			// Since we're converting all images to PNG, use PNG extension and MIME type
+			const mimeType = "image/jpeg";
 			const fileName = `${Date.now()}_${index}_${Math.random()
 				.toString(36)
-				.substring(7)}.${normalizedExt}`;
+				.substring(7)}.jpeg`;
 			const storagePath = `user-photos/${fileName}`;
 
 			console.log("Processing photo:", photo.uri);
-			console.log("File extension:", fileExt);
-			console.log("Normalized extension:", normalizedExt);
 			console.log("MIME type:", mimeType);
 			console.log("Storage path:", storagePath);
 
@@ -135,7 +167,7 @@ export default function PhotoSelectionScreen() {
 			for (let i = 0; i < binaryString.length; i++) {
 				bytes[i] = binaryString.charCodeAt(i);
 			}
-			
+
 			console.log("Binary data created, size:", bytes.length, "bytes");
 
 			// Upload to Supabase Storage using the binary data
@@ -168,6 +200,7 @@ export default function PhotoSelectionScreen() {
 				storagePath,
 				order: index + 1,
 				isMain: index === 0,
+				fileSize: fileInfo.size || 0,
 			};
 		} catch (error) {
 			console.error(`Error uploading photo ${index + 1}:`, error);
@@ -214,7 +247,33 @@ export default function PhotoSelectionScreen() {
 			// Upload all photos to Supabase Storage
 			const uploadedPhotos = await uploadAllPhotos();
 
-			// Store photo data in profile context
+			// Save photos to database
+			const { data: user } = await supabase.auth.getUser();
+			if (!user.user) {
+				throw new Error("User not authenticated");
+			}
+
+			// Insert photos into database
+			const photoInserts = uploadedPhotos.map((photo) => ({
+				user_id: user.user.id,
+				storage_path: photo.storagePath,
+				public_url: photo.uri,
+				photo_order: photo.order,
+				is_main: photo.isMain,
+				file_size: photo.fileSize || 0,
+				mime_type: "image/jpeg"
+			}));
+
+			const { error: insertError } = await supabase
+				.from('user_photos')
+				.insert(photoInserts);
+
+			if (insertError) {
+				console.error("Error saving photos to database:", insertError);
+				throw new Error(`Failed to save photos: ${insertError.message}`);
+			}
+
+			// Store photo data in profile context for onboarding
 			const photoData = {
 				photos: uploadedPhotos.map((photo) => ({
 					uri: photo.uri,
@@ -225,7 +284,7 @@ export default function PhotoSelectionScreen() {
 			};
 
 			updateProfile(photoData);
-			console.log("Photos uploaded and saved:", photoData);
+			console.log("Photos uploaded and saved to database:", photoData);
 
 			// Navigate to next screen
 			router.push("/(onboarding)/complete");
