@@ -1,20 +1,16 @@
-import React, { useState } from "react";
-import { View, ScrollView, Image, TouchableOpacity, Alert } from "react-native";
-import { router } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
-import Animated, {
-	useSharedValue,
-	useAnimatedStyle,
-	useAnimatedGestureHandler,
-	runOnJS,
-	withSpring,
-} from "react-native-reanimated";
+import React, { useState, useCallback } from "react";
 import {
-	PanGestureHandler,
-	State,
-	PanGestureHandlerGestureEvent,
-} from "react-native-gesture-handler";
-
+	View,
+	TouchableOpacity,
+	Alert,
+	ScrollView,
+	StyleSheet,
+	Dimensions,
+} from "react-native";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
+import { router } from "expo-router";
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
@@ -39,7 +35,6 @@ export default function PhotoSelectionScreen() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [isUploading, setIsUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(0);
-	const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 	const { updateProfile } = useOnboarding();
 
 	const MAX_PHOTOS = 6;
@@ -71,10 +66,10 @@ export default function PhotoSelectionScreen() {
 		try {
 			setIsLoading(true);
 			const result = await ImagePicker.launchImageLibraryAsync({
-				mediaTypes: ImagePicker.MediaTypeOptions.Images,
+				mediaTypes: "images",
 				allowsEditing: true,
 				aspect: [4, 5], // Dating app standard aspect ratio
-				quality: 0.8,
+				quality: 1,
 			});
 
 			if (!result.canceled && result.assets[0]) {
@@ -95,16 +90,6 @@ export default function PhotoSelectionScreen() {
 	const removePhoto = (id: string) => {
 		setPhotos((prev) => prev.filter((photo) => photo.id !== id));
 	};
-
-	const reorderPhotos = (fromIndex: number, toIndex: number) => {
-		if (fromIndex === toIndex) return;
-
-		const newPhotos = [...photos];
-		const [removed] = newPhotos.splice(fromIndex, 1);
-		newPhotos.splice(toIndex, 0, removed);
-		setPhotos(newPhotos);
-	};
-
 	const uploadPhotoToStorage = async (
 		photo: PhotoItem,
 		index: number,
@@ -113,59 +98,53 @@ export default function PhotoSelectionScreen() {
 			// For React Native, we need to handle the file differently
 			// The URI is a local file path, not a web URL
 			const fileExt = photo.uri.split(".").pop() || "jpg";
+			// Normalize file extension and get proper MIME type
+			const normalizedExt = fileExt.toLowerCase() === "jpg" ? "jpeg" : fileExt;
+			const mimeType = `image/${normalizedExt}`;
 			const fileName = `${Date.now()}_${index}_${Math.random()
 				.toString(36)
-				.substring(7)}.${fileExt}`;
+				.substring(7)}.${normalizedExt}`;
 			const storagePath = `user-photos/${fileName}`;
 
-			// Convert local URI to blob using a different approach
-			let blob: Blob;
-			try {
-				// First try the fetch approach
-				const response = await fetch(photo.uri);
-				if (!response.ok) {
-					throw new Error(`Fetch failed: ${response.status}`);
-				}
-				blob = await response.blob();
+			console.log("Processing photo:", photo.uri);
+			console.log("File extension:", fileExt);
+			console.log("Normalized extension:", normalizedExt);
+			console.log("MIME type:", mimeType);
+			console.log("Storage path:", storagePath);
 
-				// Check if blob is empty
-				if (blob.size === 0) {
-					throw new Error("Blob is empty");
-				}
-			} catch (fetchError) {
-				console.warn(
-					"Fetch approach failed, trying alternative method:",
-					fetchError,
-				);
+			// For React Native, we need to read the file data using expo-file-system
+			// This ensures we get the actual file content, not just metadata
+			const fileInfo = await FileSystem.getInfoAsync(photo.uri);
+			console.log("File info:", fileInfo);
 
-				// Alternative: create a file object from the URI
-				// This is more reliable for React Native
-				const formData = new FormData();
-				formData.append("file", {
-					uri: photo.uri,
-					type: `image/${fileExt}`,
-					name: fileName,
-				} as any);
-
-				// For now, let's use the original approach but with better error handling
-				const response = await fetch(photo.uri);
-				blob = await response.blob();
-
-				if (blob.size === 0) {
-					throw new Error("Image file appears to be empty or corrupted");
-				}
+			if (!fileInfo.exists || fileInfo.size === 0) {
+				throw new Error(`File does not exist or is empty: ${photo.uri}`);
 			}
 
-			console.log(
-				`Uploading photo ${index + 1}, blob size: ${blob.size} bytes`,
-			);
+			// Read the file as base64 string
+			const base64Data = await FileSystem.readAsStringAsync(photo.uri, {
+				encoding: FileSystem.EncodingType.Base64,
+			});
 
-			// Upload to Supabase Storage
+			console.log("File read successfully, size:", fileInfo.size, "bytes");
+
+			// For React Native, we need to convert base64 to ArrayBuffer for Supabase
+			// Convert base64 string to ArrayBuffer
+			const binaryString = atob(base64Data);
+			const bytes = new Uint8Array(binaryString.length);
+			for (let i = 0; i < binaryString.length; i++) {
+				bytes[i] = binaryString.charCodeAt(i);
+			}
+			
+			console.log("Binary data created, size:", bytes.length, "bytes");
+
+			// Upload to Supabase Storage using the binary data
 			const { data, error } = await supabase.storage
 				.from("user-photos")
-				.upload(storagePath, blob, {
+				.upload(storagePath, bytes, {
 					cacheControl: "3600",
 					upsert: false,
+					contentType: mimeType,
 				});
 
 			if (error) {
@@ -213,9 +192,7 @@ export default function PhotoSelectionScreen() {
 			} catch (error) {
 				const errorMessage =
 					error instanceof Error ? error.message : "Unknown error";
-				throw new Error(
-					`Failed to upload photo ${i + 1}: ${errorMessage}`,
-				);
+				throw new Error(`Failed to upload photo ${i + 1}: ${errorMessage}`);
 			}
 		}
 
@@ -267,7 +244,7 @@ export default function PhotoSelectionScreen() {
 		}
 	};
 
-	const DraggablePhoto = ({
+	const PhotoItem = ({
 		photo,
 		index,
 		onRemove,
@@ -276,101 +253,36 @@ export default function PhotoSelectionScreen() {
 		index: number;
 		onRemove: () => void;
 	}) => {
-		const translateX = useSharedValue(0);
-		const translateY = useSharedValue(0);
-		const scale = useSharedValue(1);
-		const opacity = useSharedValue(1);
-
-		const gestureHandler = useAnimatedGestureHandler<
-			PanGestureHandlerGestureEvent,
-			{ startX: number; startY: number }
-		>({
-			onStart: (_, context) => {
-				context.startX = translateX.value;
-				context.startY = translateY.value;
-				scale.value = withSpring(1.1);
-				opacity.value = withSpring(0.8);
-				runOnJS(setDraggedIndex)(index);
-			},
-			onActive: (event, context) => {
-				translateX.value = context.startX + event.translationX;
-				translateY.value = context.startY + event.translationY;
-			},
-			onEnd: () => {
-				// Calculate drop position and reorder
-				const itemWidth = 120; // Approximate width of each photo slot
-				const itemsPerRow = 3;
-				const newIndex = Math.min(
-					Math.max(
-						0,
-						Math.floor(translateX.value / itemWidth) +
-							Math.floor(translateY.value / 150) * itemsPerRow,
-					),
-					photos.length - 1,
-				);
-
-				if (newIndex !== index) {
-					runOnJS(reorderPhotos)(index, newIndex);
-				}
-
-				// Reset position and scale
-				translateX.value = withSpring(0);
-				translateY.value = withSpring(0);
-				scale.value = withSpring(1);
-				opacity.value = withSpring(1);
-				runOnJS(setDraggedIndex)(null);
-			},
-		});
-
-		const animatedStyle = useAnimatedStyle(() => ({
-			transform: [
-				{ translateX: translateX.value },
-				{ translateY: translateY.value },
-				{ scale: scale.value },
-			],
-			opacity: opacity.value,
-			zIndex: draggedIndex === index ? 1000 : 1,
-		}));
-
 		return (
-			<PanGestureHandler onGestureEvent={gestureHandler}>
-				<Animated.View
-					style={[
-						{
-							width: "33%",
-							aspectRatio: 4 / 5,
-							marginBottom: 12,
-							borderRadius: 8,
-							borderWidth: 2,
-							borderColor: "#e5e7eb",
-						},
-						animatedStyle,
-					]}
-				>
-					<View className="flex-1 relative">
-						<Image
-							source={{ uri: photo.uri }}
-							className="w-full h-full rounded-lg"
-							resizeMode="cover"
-						/>
-						{index === 0 && (
-							<View className="absolute top-2 left-2 bg-primary px-2 py-1 rounded">
-								<Text className="text-white text-xs font-semibold">Main</Text>
-							</View>
-						)}
-						<TouchableOpacity
-							className="absolute top-2 right-2 bg-red-500 w-6 h-6 rounded-full items-center justify-center"
-							onPress={onRemove}
-						>
-							<Text className="text-white text-xs font-bold">×</Text>
-						</TouchableOpacity>
-						{/* Drag indicator */}
-						<View className="absolute bottom-2 right-2 bg-black bg-opacity-50 px-2 py-1 rounded">
-							<Text className="text-white text-xs">⋮⋮</Text>
+			<View
+				style={{
+					width: "33%",
+					aspectRatio: 4 / 5,
+					marginBottom: 12,
+					borderRadius: 8,
+					borderWidth: 2,
+					borderColor: "#e5e7eb",
+				}}
+			>
+				<View className="flex-1 relative">
+					<Image
+						source={{ uri: photo.uri }}
+						className="w-full h-full rounded-lg"
+						resizeMode="cover"
+					/>
+					{index === 0 && (
+						<View className="absolute top-2 left-2 bg-primary px-2 py-1 rounded">
+							<Text className="text-white text-xs font-semibold">Main</Text>
 						</View>
-					</View>
-				</Animated.View>
-			</PanGestureHandler>
+					)}
+					<TouchableOpacity
+						className="absolute top-2 right-2 bg-red-500 w-6 h-6 rounded-full items-center justify-center"
+						onPress={onRemove}
+					>
+						<Text className="text-white text-xs font-bold">×</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
 		);
 	};
 
@@ -380,7 +292,7 @@ export default function PhotoSelectionScreen() {
 
 		if (!isEmpty) {
 			return (
-				<DraggablePhoto
+				<PhotoItem
 					key={photo.id}
 					photo={photo}
 					index={index}
