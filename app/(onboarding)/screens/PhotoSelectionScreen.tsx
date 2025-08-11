@@ -15,6 +15,7 @@ import { supabase } from "@/config/supabase";
 interface PhotoItem {
 	uri: string;
 	id: string;
+	blurhash?: string;
 }
 
 interface UploadedPhoto {
@@ -23,6 +24,7 @@ interface UploadedPhoto {
 	order: number;
 	isMain: boolean;
 	fileSize?: number;
+	blurhash?: string;
 }
 
 export default function PhotoSelectionScreen() {
@@ -109,11 +111,26 @@ export default function PhotoSelectionScreen() {
 					);
 				}
 
-				const newPhoto: PhotoItem = {
-					uri: processedImage.uri,
-					id: Date.now().toString(),
-				};
-				setPhotos((prev) => [...prev, newPhoto]);
+				// Generate blurhash for the processed image
+				try {
+					const blurhash = await Image.generateBlurhashAsync(processedImage.uri, [4, 3]);
+					console.log(`🎨 Generated blurhash for photo: ${blurhash}`);
+					
+					const newPhoto: PhotoItem = {
+						uri: processedImage.uri,
+						id: Date.now().toString(),
+						blurhash: blurhash, // Store blurhash for later use
+					};
+					setPhotos((prev) => [...prev, newPhoto]);
+				} catch (blurhashError) {
+					console.warn("⚠️ Failed to generate blurhash:", blurhashError);
+					// Still add the photo even if blurhash generation fails
+					const newPhoto: PhotoItem = {
+						uri: processedImage.uri,
+						id: Date.now().toString(),
+					};
+					setPhotos((prev) => [...prev, newPhoto]);
+				}
 			}
 		} catch (error) {
 			console.error("Error picking image:", error);
@@ -201,6 +218,7 @@ export default function PhotoSelectionScreen() {
 				order: index + 1,
 				isMain: index === 0,
 				fileSize: fileInfo.size || 0,
+				blurhash: undefined, // Will be set from the PhotoItem after blurhash generation
 			};
 		} catch (error) {
 			console.error(`Error uploading photo ${index + 1}:`, error);
@@ -214,6 +232,8 @@ export default function PhotoSelectionScreen() {
 		for (let i = 0; i < photos.length; i++) {
 			try {
 				const uploadedPhoto = await uploadPhotoToStorage(photos[i], i);
+				// Add blurhash from the PhotoItem to the uploaded photo
+				uploadedPhoto.blurhash = photos[i].blurhash;
 				uploadedPhotos.push(uploadedPhoto);
 
 				// Update progress
@@ -254,15 +274,19 @@ export default function PhotoSelectionScreen() {
 			}
 
 			// Insert photos into database
-			const photoInserts = uploadedPhotos.map((photo) => ({
-				user_id: user.user.id,
-				storage_path: photo.storagePath,
-				public_url: photo.uri,
-				photo_order: photo.order,
-				is_main: photo.isMain,
-				file_size: photo.fileSize || 0,
-				mime_type: "image/jpeg"
-			}));
+			const photoInserts = uploadedPhotos.map((photo) => {
+				console.log(`📸 Photo ${photo.order} blurhash:`, photo.blurhash);
+				return {
+					user_id: user.user.id,
+					storage_path: photo.storagePath,
+					public_url: photo.uri,
+					photo_order: photo.order,
+					is_main: photo.isMain,
+					file_size: photo.fileSize || 0,
+					mime_type: "image/jpeg",
+					blurhash: photo.blurhash || null
+				};
+			});
 
 			const { error: insertError } = await supabase
 				.from('user_photos')
