@@ -1,6 +1,6 @@
 // InterestsScreen.tsx
 import React, { useCallback, useMemo, useState } from "react";
-import { Alert, ActivityIndicator, View, Text, SafeAreaView, ScrollView, RefreshControl, Pressable } from "react-native";
+import { Alert, ActivityIndicator, View, Text, SafeAreaView, ScrollView, Pressable } from "react-native";
 import { Button } from "react-native";
 import { useInterests } from "@/app/hooks/useInterests"; // expect: { interests, loading, error, refetch }
 
@@ -26,10 +26,8 @@ export default function InterestsScreen() {
     error?: Error | null;
     refetch?: () => Promise<any> | void;
   };
-
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   const toggleInterest = useCallback((id: string) => {
     setSelectedInterests((prev) =>
@@ -62,15 +60,6 @@ export default function InterestsScreen() {
     Alert.alert("Retry", "Sluit en heropen de app om het nogmaals te proberen.");
   }, [refetch]);
 
-  const onRefresh = useCallback(async () => {
-    if (!refetch) return;
-    setRefreshing(true);
-    try {
-      await refetch();
-    } finally {
-      setRefreshing(false);
-    }
-  }, [refetch]);
 
   if (loading) {
     return (
@@ -95,18 +84,13 @@ export default function InterestsScreen() {
       <View className="flex-1 p-4">
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          refreshControl={
-            refetch ? (
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            ) : undefined
-          }
           contentContainerStyle={{ paddingBottom: 120 }}
         >
           <Text className="text-2xl font-bold">What are you into?</Text>
           <Text className="text-gray-500 mt-1">Choose a minimum of {MIN_REQUIRED} interests</Text>
 
           <View className="flex-row flex-wrap gap-2 mt-6">
-            {interests.map((interest) => {
+            {interests.map((interest) => {  
               const selected = selectedInterests.includes(interest.id);
               return (
                 <Pressable
