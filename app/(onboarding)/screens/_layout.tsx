@@ -24,6 +24,7 @@ export default function ScreensLayout() {
 			<Stack.Screen name="ReligionScreen" />
 			<Stack.Screen name="DrinkingScreen" />
 			<Stack.Screen name="SmokingScreen" />
+			<Stack.Screen name="InterestsScreen" />
 		</Stack>
 	);
 } 

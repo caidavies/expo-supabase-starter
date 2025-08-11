@@ -54,7 +54,7 @@ export default function Welcome() {
 				<Button
 					size="default"
 					variant="default"
-					onPress={() => router.push("/screens/PhotoSelectionScreen")}
+					onPress={() => router.push("/screens/InterestsScreen")}
 				>
 					<Text>Get Started</Text>
 				</Button>

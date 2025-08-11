@@ -4,6 +4,7 @@ import {
 	useContext,
 	useState,
 } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type OnboardingData = {
 	// Core user data
