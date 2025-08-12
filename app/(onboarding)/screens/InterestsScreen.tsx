@@ -3,6 +3,8 @@ import React, { useCallback, useMemo, useState } from "react";
 import { Alert, ActivityIndicator, View, Text, SafeAreaView, ScrollView, Pressable } from "react-native";
 import { Button } from "react-native";
 import { useInterests } from "@/app/hooks/useInterests"; // expect: { interests, loading, error, refetch }
+import { supabase } from "@/config/supabase";
+import { useAuth } from "@/context/supabase-provider";
 
 type Interest = {
   id: string;
@@ -13,11 +15,49 @@ type Interest = {
 
 const MIN_REQUIRED = 3;
 
-async function submitSelectedInterests(selected: string[]) {
-  return new Promise((resolve) => setTimeout(resolve, 600));
+async function submitSelectedInterests(
+	userId: string,
+	selectedInterestIds: string[],
+) {
+  try {
+    				// Start a transaction by using multiple operations
+		const { error: deleteError } = await supabase
+			.from("user_interests")
+			.delete()
+			.eq("user_id", userId);
+
+		if (deleteError) {
+			console.error("Error deleting existing interests:", deleteError);
+			throw new Error("Failed to update interests");
+		}
+
+    // Insert new interests
+    if (selectedInterestIds.length > 0) {
+      const interestRecords = selectedInterestIds.map(interestId => ({
+        user_id: userId,
+        interest_id: interestId,
+        intensity_level: 3 // Default level, can be made configurable later
+      }));
+
+      const { error: insertError } = await supabase
+        .from('user_interests')
+        .insert(interestRecords);
+
+      if (insertError) {
+        console.error('Error inserting interests:', insertError);
+        throw new Error('Failed to save interests');
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in submitSelectedInterests:', error);
+    throw error;
+  }
 }
 
 export default function InterestsScreen() {
+  const { session } = useAuth();
   const { interests = [], loading, error, refetch } = useInterests() as {
     interests: Interest[];
     loading: boolean;
@@ -39,16 +79,57 @@ export default function InterestsScreen() {
   );
 
   const onContinue = useCallback(async () => {
+    if (!session?.user?.id) {
+      Alert.alert("Error", "User not authenticated");
+      return;
+    }
+
     try {
       setSubmitting(true);
-      await submitSelectedInterests(selectedInterests);
-      // navigation.navigate("Onboarding.Next");
+      
+      // Get the user ID from the users table
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("auth_user_id", session.user.id)
+        .single();
+
+      if (userError || !userData) {
+        throw new Error("User profile not found");
+      }
+
+      await submitSelectedInterests(userData.id, selectedInterests);
+      
+      // Show success message
+      Alert.alert(
+        "Success!", 
+        "Your interests have been saved successfully!",
+        [
+          {
+            text: "Continue",
+            onPress: () => {
+              // Navigate onward in your onboarding flow
+              // @ts-ignore – replace "Onboarding.Next" with your actual route
+              // navigation.navigate("Onboarding.Next");
+            }
+          }
+        ]
+      );
     } catch (e: any) {
-      Alert.alert("Ops!", "We konden je interesses niet opslaan. Probeer het nog eens.");
+      Alert.alert(
+        "Oops!", 
+        "We couldn't save your interests. Please try again.",
+        [
+          {
+            text: "Try Again",
+            onPress: () => setSubmitting(false)
+          }
+        ]
+      );
     } finally {
       setSubmitting(false);
     }
-  }, [selectedInterests]);
+  }, [selectedInterests, session?.user?.id]);
 
   const onRetry = useCallback(() => {
     if (refetch) return refetch();
