@@ -357,7 +357,7 @@ export default function PromptsScreen() {
 			<View className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-gray-200">
 				<View className="flex-row items-center justify-between mb-3">
 					<Text className="text-gray-600">
-						Prompts: <Text className="font-semibold">{userPrompts.length}</Text> / {MAX_PROMPTS}
+						Prompts: <Text className="font-semibold">{userPrompts.length} / </Text>{MAX_PROMPTS}
 					</Text>
 					{userPrompts.length === 0 && (
 						<Text className="text-gray-500">Add at least 1 prompt</Text>
@@ -369,7 +369,9 @@ export default function PromptsScreen() {
 					disabled={!canContinue}
 					className="w-full"
 				>
-					{isSubmitting ? "Saving..." : "Continue"}
+					<Text>
+						{isSubmitting ? "Saving..." : "Continue"}
+					</Text>
 				</Button>
 			</View>
 
@@ -456,14 +458,7 @@ export default function PromptsScreen() {
 										disabled={!editingAnswer.trim()}
 										className="w-full mb-3"
 									>
-										Save Answer
-									</Button>
-									<Button
-										onPress={handleBackToPrompts}
-										variant="outline"
-										className="w-full"
-									>
-										Back to Prompts
+										<Text>Save</Text>
 									</Button>
 								</View>
 							</View>
