@@ -1,7 +1,7 @@
 // InterestsScreen.tsx
 import React, { useCallback, useMemo, useState } from "react";
 import { Alert, ActivityIndicator, View, Text, SafeAreaView, ScrollView, Pressable } from "react-native";
-import { Button } from "react-native";
+import { Button } from "@/components/ui/button";
 import { useInterests } from "@/app/hooks/useInterests"; // expect: { interests, loading, error, refetch }
 import { supabase } from "@/config/supabase";
 import { useAuth } from "@/context/supabase-provider";
@@ -177,7 +177,9 @@ export default function InterestsScreen() {
     return (
       <SafeAreaView className="flex-1 justify-center items-center bg-background p-6">
         <Text className="text-red-500 mb-3">Interesses laden mislukt</Text>
-        <Button title="Opnieuw proberen" onPress={onRetry} />
+        		<Button onPress={onRetry}>
+			<Text>Opnieuw proberen</Text>
+		</Button>
       </SafeAreaView>
     );
   }

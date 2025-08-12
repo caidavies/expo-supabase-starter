@@ -46,10 +46,10 @@ const buttonTextVariants = cva(
 				link: "text-primary group-active:underline",
 			},
 			size: {
-				default: "",
-				sm: "",
+				default: "text-sm native:text-base",
+				sm: "text-sm",
 				lg: "native:text-lg",
-				icon: "",
+				icon: "text-sm",
 			},
 		},
 		defaultVariants: {
@@ -65,7 +65,7 @@ type ButtonProps = React.ComponentPropsWithoutRef<typeof Pressable> &
 const Button = React.forwardRef<
 	React.ComponentRef<typeof Pressable>,
 	ButtonProps
->(({ className, variant, size, ...props }, ref) => {
+>(({ className, variant, size, children, ...props }, ref) => {
 	return (
 		<TextClassContext.Provider
 			value={buttonTextVariants({
@@ -82,7 +82,9 @@ const Button = React.forwardRef<
 				ref={ref}
 				role="button"
 				{...props}
-			/>
+			>
+				{children}
+			</Pressable>
 		</TextClassContext.Provider>
 	);
 });
