@@ -9,35 +9,12 @@ export default function ProtectedLayout() {
 	return (
 		<Stack
 			screenOptions={{
-				headerShown: true,
-				headerLargeTitle: true,
-				headerLargeTitleShadowVisible: false,
-				headerBackButtonDisplayMode: "minimal",
-				headerTitle: "Home",
-				headerStyle: {
-					backgroundColor: "#FFFFFF",
-				},
+				headerShown: false, // Let tabs handle their own headers
 			}}
 		>
-			<Stack.Screen name="(tabs)" />
-			<Stack.Screen 
-				name="(tabs)/index" 
-				options={{
-					title: "Home",
-				}}
-			/>
-			<Stack.Screen 
-				name="(tabs)/FavoritesScreen" 
-				options={{
-					title: "Favorites",
-				}}
-			/>
-			<Stack.Screen 
-				name="(tabs)/SettingsScreen" 
-				options={{
-					title: "Settings",
-				}}
-			/>
+			<Stack.Screen name="(tabs)/index" />
+			<Stack.Screen name="(tabs)/FavoritesScreen" />
+			<Stack.Screen name="(tabs)/SettingsScreen" />
 			<Stack.Screen 
 				name="modal" 
 				options={{ 
