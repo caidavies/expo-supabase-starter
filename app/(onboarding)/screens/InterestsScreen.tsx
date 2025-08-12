@@ -14,6 +14,7 @@ type Interest = {
 };
 
 const MIN_REQUIRED = 3;
+const MAX_ALLOWED = 10;
 
 async function submitSelectedInterests(
 	userId: string,
@@ -68,13 +69,22 @@ export default function InterestsScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const toggleInterest = useCallback((id: string) => {
-    setSelectedInterests((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelectedInterests((prev) => {
+      if (prev.includes(id)) {
+        // Remove interest if already selected
+        return prev.filter((x) => x !== id);
+      } else {
+        // Only add if under the maximum limit
+        if (prev.length >= MAX_ALLOWED) {
+          return prev; // Don't add if at limit
+        }
+        return [...prev, id];
+      }
+    });
   }, []);
 
   const canContinue = useMemo(
-    () => selectedInterests.length >= MIN_REQUIRED && !submitting,
+    () => selectedInterests.length >= MIN_REQUIRED && selectedInterests.length <= MAX_ALLOWED && !submitting,
     [selectedInterests.length, submitting]
   );
 
@@ -180,7 +190,7 @@ export default function InterestsScreen() {
           contentContainerStyle={{ paddingBottom: 120 }}
         >
           <Text className="text-2xl font-bold">What are you into?</Text>
-          <Text className="text-gray-500 mt-1">Choose a minimum of {MIN_REQUIRED} interests</Text>
+          <Text className="text-gray-500 mt-1">Choose {MIN_REQUIRED}-{MAX_ALLOWED} interests</Text>
 
           {/* Sections */}
           <View className="mt-6">
@@ -218,10 +228,13 @@ export default function InterestsScreen() {
         <View className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-gray-200">
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-gray-600">
-              Geselecteerd: <Text className="font-semibold">{selectedInterests.length}</Text> / {MIN_REQUIRED}+
+              Selected: <Text className="font-semibold">{selectedInterests.length}</Text> / {MAX_ALLOWED}
             </Text>
             {selectedInterests.length < MIN_REQUIRED && (
-              <Text className="text-gray-500">Nog {MIN_REQUIRED - selectedInterests.length} te gaan</Text>
+              <Text className="text-gray-500">Need {MIN_REQUIRED - selectedInterests.length} more</Text>
+            )}
+            {selectedInterests.length >= MAX_ALLOWED && (
+              <Text className="text-green-600">Maximum reached!</Text>
             )}
           </View>
 

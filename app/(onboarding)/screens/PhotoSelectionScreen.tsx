@@ -311,7 +311,7 @@ export default function PhotoSelectionScreen() {
 			console.log("Photos uploaded and saved to database:", photoData);
 
 			// Navigate to next screen
-			router.push("/(onboarding)/complete");
+			router.push("/(onboarding)/screens/InterestsScreen");
 		} catch (error) {
 			console.error("Error uploading photos:", error);
 			const errorMessage =

@@ -54,21 +54,10 @@ export default function Welcome() {
 				<Button
 					size="default"
 					variant="default"
-					onPress={() => router.push("/screens/InterestsScreen")}
+					onPress={() => router.push("/screens/FirstNameScreen")}
 				>
 					<Text>Get Started</Text>
 				</Button>
-				
-				{/* <Button
-					size="default"
-					variant="destructive"
-					onPress={async () => {
-						console.log("Clearing session from onboarding welcome...");
-						await signOut();
-					}}
-				>
-					<Text>🚪 Clear Session & Sign Out</Text>
-				</Button> */}
 			</View>
 		</SafeAreaView>
 	);
