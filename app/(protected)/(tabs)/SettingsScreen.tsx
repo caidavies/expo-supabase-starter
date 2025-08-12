@@ -1,27 +1,24 @@
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from "react-native";
 import { SafeAreaView } from "@/components/safe-area-view";
 import { useAuth } from "@/context/supabase-provider";
 import { useLayoutEffect } from "react";
 import { useNavigation } from "expo-router";
 
-export default function HomeScreen() {
-	const { session } = useAuth();
+export default function SettingsScreen() {
+	const { signOut } = useAuth();
 	const navigation = useNavigation();
 
 	useLayoutEffect(() => {
-		console.log("Setting header title to: Home");
 		navigation.setOptions({
-			title: "Home",
+			headerTitle: "Settings",
 		});
 	}, [navigation]);
 
 	return (
 		<SafeAreaView className="flex-1 bg-white">
 			<ScrollView className="flex-1 px-5">
-				<View className="flex-1 items-center justify-center">
-					<Text>Home</Text>
-				</View>
+				<Text>Settings</Text>
 			</ScrollView>
 		</SafeAreaView>
 	);

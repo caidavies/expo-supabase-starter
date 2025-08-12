@@ -51,7 +51,7 @@ export default function OnboardingWelcome() {
 			<Button
 				size="default"
 				variant="default"
-				onPress={() => router.push("/(protected)/onboarding/profile")}
+				onPress={() => router.push("/(protected)/(tabs)/HomeScreen")}
 				className="web:m-4"
 			>
 				<Text>Get Started</Text>

@@ -1,31 +1,55 @@
 import React from "react";
 import { Tabs } from "expo-router";
-
-import { useColorScheme } from "@/lib/useColorScheme";
-import { colors } from "@/constants/colors";
+import { Home, Heart, Settings } from "lucide-react-native";
 
 export default function TabsLayout() {
-	const { colorScheme } = useColorScheme();
-
 	return (
 		<Tabs
 			screenOptions={{
-				headerShown: false,
+				headerShown: false, // Hide tab headers since parent handles them
+				tabBarActiveTintColor: "#000000",
+				tabBarInactiveTintColor: "#8E8E93",
 				tabBarStyle: {
-					backgroundColor:
-						colorScheme === "dark"
-							? colors.dark.background
-							: colors.light.background,
+					backgroundColor: "#FFFFFF",
+					borderTopWidth: 1,
+					borderTopColor: "#E5E5E5",
+					paddingBottom: 5,
+					paddingTop: 5,
+					height: 100,
 				},
-				tabBarActiveTintColor:
-					colorScheme === "dark"
-						? colors.dark.foreground
-						: colors.light.foreground,
-				tabBarShowLabel: false,
+				tabBarLabelStyle: {
+					fontSize: 12,
+					fontWeight: "600",
+				},
 			}}
 		>
-			<Tabs.Screen name="index" options={{ title: "Home" }} />
-			<Tabs.Screen name="settings" options={{ title: "Settings" }} />
+			<Tabs.Screen
+				name="index"
+				options={{
+					title: "Home",
+					tabBarIcon: ({ color, size, focused }) => (
+						<Home size={size} color={color} />
+					),
+				}}
+			/>
+			<Tabs.Screen
+				name="FavoritesScreen"
+				options={{
+					title: "Favorites",
+					tabBarIcon: ({ color, size, focused }) => (
+						<Heart size={size} color={color} />
+					),
+				}}
+			/>
+			<Tabs.Screen
+				name="SettingsScreen"
+				options={{
+					title: "Settings",
+					tabBarIcon: ({ color, size, focused }) => (
+						<Settings size={size} color={color} />
+					),
+				}}
+			/>
 		</Tabs>
 	);
 }
