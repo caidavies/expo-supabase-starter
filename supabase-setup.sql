@@ -92,3 +92,72 @@ INSERT INTO public.prompts (question, category) VALUES
   ('What''s your biggest turn off?', 'Life'),
   ('What''s your biggest passion?', 'Life'),
   ('What''s your biggest dream?', 'Life'); 
+
+-- Areas table for Istanbul districts
+CREATE TABLE public.areas (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  name text NOT NULL,
+  region text NOT NULL,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT areas_pkey PRIMARY KEY (id),
+  CONSTRAINT areas_name_unique UNIQUE (name)
+);
+
+-- Insert Istanbul districts organized by region
+INSERT INTO public.areas (name, region) VALUES
+  -- European Side - Central
+  ('Beyoğlu', 'European Side - Central'),
+  ('Fatih', 'European Side - Central'),
+  ('Şişli', 'European Side - Central'),
+  ('Beşiktaş', 'European Side - Central'),
+  ('Kadıköy', 'European Side - Central'),
+  ('Üsküdar', 'European Side - Central'),
+  
+  -- European Side - North
+  ('Sarıyer', 'European Side - North'),
+  ('Eyüpsultan', 'European Side - North'),
+  ('Kağıthane', 'European Side - North'),
+  ('Sultangazi', 'European Side - North'),
+  ('Gaziosmanpaşa', 'European Side - North'),
+  ('Bayrampaşa', 'European Side - North'),
+  ('Esenler', 'European Side - North'),
+  ('Bağcılar', 'European Side - North'),
+  ('Güngören', 'European Side - North'),
+  ('Küçükçekmece', 'European Side - North'),
+  ('Avcılar', 'European Side - North'),
+  ('Esenyurt', 'European Side - North'),
+  ('Büyükçekmece', 'European Side - North'),
+  ('Çatalca', 'European Side - North'),
+  ('Silivri', 'European Side - North'),
+  
+  -- European Side - West
+  ('Bakırköy', 'European Side - West'),
+  ('Zeytinburnu', 'European Side - West'),
+  ('Bahçelievler', 'European Side - West'),
+  ('Küçükçekmece', 'European Side - West'),
+  ('Avcılar', 'European Side - West'),
+  ('Esenyurt', 'European Side - West'),
+  ('Büyükçekmece', 'European Side - West'),
+  
+  -- Asian Side - Central
+  ('Kadıköy', 'Asian Side - Central'),
+  ('Üsküdar', 'Asian Side - Central'),
+  ('Maltepe', 'Asian Side - Central'),
+  ('Kartal', 'Asian Side - Central'),
+  ('Pendik', 'Asian Side - Central'),
+  ('Tuzla', 'Asian Side - Central'),
+  
+  -- Asian Side - North
+  ('Beykoz', 'Asian Side - North'),
+  ('Çekmeköy', 'Asian Side - North'),
+  ('Sancaktepe', 'Asian Side - North'),
+  ('Sultanbeyli', 'Asian Side - North'),
+  ('Pendik', 'Asian Side - North'),
+  
+  -- Asian Side - South
+  ('Maltepe', 'Asian Side - South'),
+  ('Kartal', 'Asian Side - South'),
+  ('Pendik', 'Asian Side - South'),
+  ('Tuzla', 'Asian Side - South'),
+  ('Çatalca', 'Asian Side - South'); 
