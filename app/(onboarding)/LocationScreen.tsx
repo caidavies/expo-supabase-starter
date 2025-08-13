@@ -10,6 +10,7 @@ import { useAuth } from "@/context/supabase-provider";
 import { useDistricts, saveUserDistrict, getUserDistrict, type District } from "@/app/hooks/useDistricts";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { supabase } from "@/config/supabase";
+import Icon from "react-native-remix-icon";
 
 export default function LocationScreen() {
 	const { session } = useAuth();
@@ -126,7 +127,8 @@ export default function LocationScreen() {
 	return (
 		<SafeAreaView className="flex-1 bg-background">
 			<ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 120 }}>
-				<View className="mb-6">
+				<View className="mb-6 gap-6">
+					<Icon name="user-location-line" size={24} color="#212030" />
 					<H1>Where are you located?</H1>
 					<Muted className="mt-2">
 						Select your current location to help us find matches near you

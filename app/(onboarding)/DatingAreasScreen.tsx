@@ -8,6 +8,7 @@ import { useOnboarding } from "@/context/onboarding-provider";
 import { useAuth } from "@/context/supabase-provider";
 import { useDistricts, saveUserDatingAreas, getUserDatingAreas, type District } from "@/app/hooks/useDistricts";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import Icon from "react-native-remix-icon";
 
 import { supabase } from "@/config/supabase";
 
@@ -154,11 +155,14 @@ export default function DatingAreasScreen() {
 	return (
 		<SafeAreaView className="flex-1 bg-background">
 			<ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 120 }}>
-				<View className="mb-6">
-					<H1>Where would you like to date?</H1>
-					<Muted className="mt-2">
-						Select areas in Istanbul where you'd be open to meeting people
-					</Muted>
+				<View className="mb-6 gap-0">
+					<View className="gap-4 items-start">
+						<Icon name="map-pin-line" size={24} color="#212030" />
+						<H1>Where would you like to date?</H1>
+						<Muted>
+							Where would you like to meet for dates?
+						</Muted>
+					</View>
 				</View>
 
 				{Object.entries(districtsByRegion).map(([region, regionDistricts]) => (
@@ -216,26 +220,10 @@ export default function DatingAreasScreen() {
 						</Text>
 					</View>
 				)}
-
-				{selectedAreas.length >= MAX_AREAS && (
-					<View className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-200">
-						<Text className="text-orange-800 text-sm">
-							⚠️ You've reached the maximum of {MAX_AREAS} areas. Deselect some areas if you want to add others.
-						</Text>
-					</View>
-				)}
 			</ScrollView>
 
 			{/* Footer */}
-			<View className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-gray-200">
-				<View className="flex-row items-center justify-between mb-3">
-					<Text className="text-gray-600">
-						Areas: <Text className="font-semibold">{selectedAreas.length}</Text> / {MAX_AREAS}
-					</Text>
-					{selectedAreas.length < MIN_AREAS && (
-						<Text className="text-gray-500">Select at least {MIN_AREAS} area</Text>
-					)}
-				</View>
+			<View className="absolute bottom-0 left-0 right-0 p-4 pb-12 bg-background border-t border-gray-200">
 
 				<Button
 					onPress={onContinue}

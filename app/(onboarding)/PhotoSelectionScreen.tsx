@@ -4,13 +4,14 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
-import { router } from "expo-router";
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
 import { supabase } from "@/config/supabase";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import Icon from "react-native-remix-icon";
 
 interface PhotoItem {
 	uri: string;
@@ -33,7 +34,7 @@ export default function PhotoSelectionScreen() {
 	const [isUploading, setIsUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(0);
 	const { updateProfile } = useOnboarding();
-
+	const { next, canGoNext } = useOnboardingNavigation();
 	const MAX_PHOTOS = 6;
 
 	const requestPermissions = async () => {
@@ -284,12 +285,12 @@ export default function PhotoSelectionScreen() {
 					is_main: photo.isMain,
 					file_size: photo.fileSize || 0,
 					mime_type: "image/jpeg",
-					blurhash: photo.blurhash || null
+					blurhash: photo.blurhash || null,
 				};
 			});
 
 			const { error: insertError } = await supabase
-				.from('user_photos')
+				.from("user_photos")
 				.insert(photoInserts);
 
 			if (insertError) {
@@ -311,7 +312,7 @@ export default function PhotoSelectionScreen() {
 			console.log("Photos uploaded and saved to database:", photoData);
 
 			// Navigate to next screen
-			router.push("/(onboarding)/screens/PromptsScreen");
+			next();
 		} catch (error) {
 			console.error("Error uploading photos:", error);
 			const errorMessage =
@@ -395,23 +396,20 @@ export default function PhotoSelectionScreen() {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
+		<SafeAreaView className="flex-1 bg-background p-4" edges={["top", "left", "right"]}>
 			<ScrollView showsVerticalScrollIndicator={false}>
-				<View className="flex-1 gap-6 py-40 web:m-4">
+				<View className="flex-1 gap-6 web:m-4">
 					<View className="gap-4">
-						<H1 className="self-start">Add your photos</H1>
-						<Muted className="flex">
-							Choose up to {MAX_PHOTOS} photos that show your personality. Your
-							first photo will be your main profile picture.
-						</Muted>
+						<View className="gap-4 items-start">
+							<Icon name="image-2-line" size={24} color="#212030" />
+							<H1>Add your photos</H1>
+							<Muted>
+								{photos.length} of {MAX_PHOTOS} photos
+							</Muted>
+						</View>
 					</View>
 
 					<View className="gap-4">
-						<View className="flex-row justify-between">
-							<Text className="text-sm text-gray-600">
-								{photos.length} of {MAX_PHOTOS} photos
-							</Text>
-						</View>
 
 						{/* Photo Grid */}
 						<View className="flex-row flex-wrap justify-between">
@@ -454,7 +452,7 @@ export default function PhotoSelectionScreen() {
 
 			<View className="gap-4 web:m-4 pt-4">
 				<Button
-					size="default"
+					size="lg"
 					variant="default"
 					onPress={handleNext}
 					disabled={photos.length === 0 || isLoading || isUploading}
@@ -470,15 +468,6 @@ export default function PhotoSelectionScreen() {
 											photos.length > 1 ? "s" : ""
 										}`}
 					</Text>
-				</Button>
-
-				<Button
-					size="default"
-					variant="secondary"
-					onPress={() => router.back()}
-					disabled={isLoading || isUploading}
-				>
-					<Text>Back</Text>
 				</Button>
 			</View>
 		</SafeAreaView>

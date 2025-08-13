@@ -7,6 +7,7 @@ import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import Icon from "react-native-remix-icon";
 
 const pronounsOptions = [
 	"He/Him",
@@ -32,10 +33,13 @@ export default function PronounsScreen() {
 		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
 			<View className="flex-1 gap-6 py-24 web:m-4">
 				<View className="gap-4">
-					<H1 className="self-start">What are your pronouns?</H1>
-					<Muted className="flex">
-						This helps us address you correctly and find better matches.
-					</Muted>
+					<View className="gap-4 items-start">
+						<Icon name="chat-3-line" size={24} color="#212030" />
+						<H1>What are your pronouns?</H1>
+						<Muted>
+							Which pronouns do you prefer to be called by?
+						</Muted>
+					</View>
 				</View>
 
 				<View className="gap-3">
@@ -62,7 +66,7 @@ export default function PronounsScreen() {
 
 			<View className="gap-4 web:m-4">
 				<Button
-					size="default"
+					size="lg"
 					variant="default"
 					onPress={handleNext}
 					disabled={!selectedPronouns}

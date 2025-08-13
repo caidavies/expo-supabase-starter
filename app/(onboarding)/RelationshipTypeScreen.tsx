@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
 import { useOnboarding } from "@/context/onboarding-provider";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import Icon from "react-native-remix-icon";
 
 const relationshipTypeOptions = [
   'Monogamous',
@@ -35,10 +36,10 @@ export default function RelationshipTypeScreen() {
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">What type of relationship are you looking for?</H1>
-          <Muted className="flex">
-            This helps us match you with people who want the same type of relationship.
-          </Muted>
+          <View className="gap-4 items-start"> 
+            <Icon name="user-heart-line" size={24} color="#212030" />
+            <H1>What type of relationship are you looking for?</H1>
+          </View>
         </View>
 
         <View className="gap-3">
@@ -59,7 +60,7 @@ export default function RelationshipTypeScreen() {
 
       <View className="gap-4 web:m-4">
         <Button
-          size="default"
+          size="lg"
           variant="default"
           onPress={handleNext}
           disabled={!selectedType}

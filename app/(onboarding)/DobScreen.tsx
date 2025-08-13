@@ -10,6 +10,7 @@ import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { useAuth } from "@/context/supabase-provider";
+import Icon from "react-native-remix-icon";
 
 export default function DobScreen() {
 	const [day, setDay] = useState("");
@@ -63,10 +64,8 @@ export default function DobScreen() {
 			>
 				<View className="flex-1 gap-6 py-24 web:m-4">
 					<View className="gap-4">
+						<Icon name="calendar-line" size={24} color="#212030" />
 						<H1 className="self-start">What&apos;s your date of birth?</H1>
-						<Muted className="flex">
-							We use this to show your age and find people in your age range.
-						</Muted>
 					</View>
 
 					<View className="gap-4">
@@ -107,7 +106,7 @@ export default function DobScreen() {
 
 				<View className="gap-4 web:m-4">
 					<Button
-						size="default"
+						size="lg"
 						variant="default"
 						onPress={handleNext}
 						disabled={

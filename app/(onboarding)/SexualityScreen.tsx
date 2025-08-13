@@ -8,6 +8,7 @@ import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import Icon from "react-native-remix-icon";
 
 
 const sexualityOptions = ["Men", "Women", "Non-Binary"];
@@ -38,10 +39,13 @@ export default function SexualityScreen() {
 		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
 			<View className="flex-1 gap-6 py-24 web:m-4">
 				<View className="gap-4">
-					<H1 className="self-start">Who are you attracted to?</H1>
-					<Muted className="flex">
-						Select all that apply to help us find better matches.
-					</Muted>
+					<View className="gap-4 items-start">
+						<Icon name="heart-2-line" size={24} color="#212030" />
+						<H1>Who are you attracted to?</H1>
+						<Muted>
+							Select all that apply to help us find better matches.
+						</Muted>
+					</View>
 				</View>
 
 				<View className="gap-3">
@@ -64,7 +68,7 @@ export default function SexualityScreen() {
 
 			<View className="gap-4 web:m-4">
 				<Button
-					size="default"
+					size="lg"
 					variant="default"
 					onPress={handleNext}
 					disabled={selectedOptions.length === 0}

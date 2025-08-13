@@ -8,6 +8,7 @@ import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import Icon from "react-native-remix-icon";
 
 
 const smokingOptions = ["Yes", "Sometimes", "No"];
@@ -29,11 +30,10 @@ export default function SmokingScreen() {
 		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
 			<View className="flex-1 gap-6 py-24 web:m-4">
 				<View className="gap-4">
-					<H1 className="self-start">Do you smoke?</H1>
-					<Muted className="flex">
-						This helps us match you with people who have similar lifestyle
-						preferences.
-					</Muted>
+					<View className="gap-4 items-start">
+						<Icon name="pencil-line" size={24} color="#212030" />
+						<H1>Do you smoke?</H1>
+					</View>
 				</View>
 
 				<View className="gap-3">
@@ -54,7 +54,7 @@ export default function SmokingScreen() {
 
 			<View className="gap-4 web:m-4">
 				<Button
-					size="default"
+					size="lg"
 					variant="default"
 					onPress={handleNext}
 					disabled={!selectedOption}

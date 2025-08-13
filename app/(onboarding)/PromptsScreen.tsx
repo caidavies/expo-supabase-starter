@@ -9,6 +9,8 @@ import { useOnboarding } from "@/context/onboarding-provider";
 import { usePrompts, saveUserPrompts, fetchUserPrompts, type Prompt, type UserPrompt } from "@/app/hooks/usePrompts";
 import { useAuth } from "@/context/supabase-provider";
 import { supabase } from "@/config/supabase";
+import Icon from "react-native-remix-icon";
+
 
 // Local state interface for managing prompts during editing
 interface LocalUserPrompt {
@@ -332,10 +334,13 @@ export default function PromptsScreen() {
 		<SafeAreaView className="flex-1 bg-background">
 			<ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 120 }}>
 				<View className="mb-6">
-					<H1>Add some conversation starters</H1>
-					<Muted className="mt-2">
-						Choose up to 3 prompts that will help others get to know you better
-					</Muted>
+					<View className="gap-4 items-start">
+						<Icon name="chat-1-line" size={24} color="#212030" />
+						<H1>Add some conversation starters</H1>
+						<Muted>
+							Choose up to 3 prompts that will help others get to know you better
+						</Muted>
+					</View>
 				</View>
 
 				<View className="space-y-4">
@@ -352,25 +357,22 @@ export default function PromptsScreen() {
 			</ScrollView>
 
 			{/* Footer */}
-			<View className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-gray-200">
-				<View className="flex-row items-center justify-between mb-3">
-					<Text className="text-gray-600">
-						Prompts: <Text className="font-semibold">{userPrompts.length} / </Text>{MAX_PROMPTS}
-					</Text>
-					{userPrompts.length === 0 && (
-						<Text className="text-gray-500">Add at least 1 prompt</Text>
-					)}
-				</View>
+			<View className="absolute bottom-0 left-0 right-0 p-4 pb-12 bg-background border-t border-gray-200">
+				<View className="flex-row justify-between items-center gap-4">
+					<Pressable onPress={() => router.push("/(onboarding)/DatingAreasScreen")}>
+						<Text className="text-gray-800 text-lg">Skip</Text>
+					</Pressable>
 
-				<Button
-					onPress={onContinue}
-					disabled={!canContinue}
-					className="w-full"
-				>
-					<Text>
-						{isSubmitting ? "Saving..." : "Continue"}
-					</Text>
-				</Button>
+					<Button
+						onPress={onContinue}
+						disabled={!canContinue}
+						className=""
+					>
+						<Text>
+							{isSubmitting ? "Saving..." : "Continue"}
+						</Text>
+					</Button>
+				</View>
 			</View>
 
 			{/* Combined Modal for Prompt Selection and Answer Input */}
@@ -441,9 +443,9 @@ export default function PromptsScreen() {
 											value={editingAnswer}
 											onChangeText={setEditingAnswer}
 											placeholder="Share your thoughts..."
-											multiline
+											multiline={true}
 											numberOfLines={6}
-											className="border border-gray-300 rounded-lg p-3 text-base"
+											className="border border-gray-300 rounded-lg p-3 text-base bg-white min-h-24"
 											textAlignVertical="top"
 											autoFocus
 										/>

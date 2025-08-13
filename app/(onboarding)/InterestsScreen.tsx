@@ -1,11 +1,14 @@
 // InterestsScreen.tsx
 import React, { useCallback, useMemo, useState } from "react";
 import { Alert, ActivityIndicator, View, Text, SafeAreaView, ScrollView, Pressable } from "react-native";
-import { router } from "expo-router";
 import { Button } from "@/components/ui/button";
 import { useInterests } from "@/app/hooks/useInterests"; // expect: { interests, loading, error, refetch }
 import { supabase } from "@/config/supabase";
 import { useAuth } from "@/context/supabase-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import { H1, Muted } from "@/components/ui/typography";
+import Icon from "react-native-remix-icon";
+
 
 type Interest = {
   id: string;
@@ -68,7 +71,7 @@ export default function InterestsScreen() {
   };
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
-
+  const { next, canGoNext } = useOnboardingNavigation();
   const toggleInterest = useCallback((id: string) => {
     setSelectedInterests((prev) => {
       if (prev.includes(id)) {
@@ -112,7 +115,7 @@ export default function InterestsScreen() {
       await submitSelectedInterests(userData.id, selectedInterests);
       
       // Navigate to the next onboarding screen
-      router.push("/(onboarding)/screens/PhotoSelectionScreen");
+      next();
     } catch (e: any) {
       Alert.alert(
         "Oops!", 
@@ -173,14 +176,17 @@ export default function InterestsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background" edges={["top, left, right"]}>
       <View className="flex-1 p-4">
         <ScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 120 }}
         >
-          <Text className="text-2xl font-bold">What are you into?</Text>
-          <Text className="text-gray-500 mt-1">Choose {MIN_REQUIRED}-{MAX_ALLOWED} interests</Text>
+          <View className="gap-4 items-start">
+            <Icon name="thumb-up-line" size={24} color="#212030" />
+            <H1>What are you into?</H1>
+            <Muted>Choose {MIN_REQUIRED}-{MAX_ALLOWED} interests</Muted>
+          </View>
 
           {/* Sections */}
           <View className="mt-6">
@@ -190,18 +196,30 @@ export default function InterestsScreen() {
                 <View className="flex-row flex-wrap gap-2 mt-3">
                   {section.items.map((interest) => {
                     const selected = selectedInterests.includes(interest.id);
+                    const isDisabled = selectedInterests.length >= MAX_ALLOWED && !selected;
                     return (
                       <Pressable
                         key={interest.id}
                         onPress={() => toggleInterest(interest.id)}
+                        disabled={isDisabled}
                         accessibilityRole="button"
-                        accessibilityState={{ selected }}
-                        accessibilityLabel={`${interest.name}${selected ? " geselecteerd" : ""}`}
+                        accessibilityState={{ selected, disabled: isDisabled }}
+                        accessibilityLabel={`${interest.name}${selected ? " geselecteerd" : ""}${isDisabled ? " uitgeschakeld" : ""}`}
                         className={`px-4 py-2 rounded-full border ${
-                          selected ? "bg-primary border-primary" : "bg-transparent border-gray-300"
+                          selected 
+                            ? "bg-primary border-primary" 
+                            : isDisabled 
+                              ? "bg-gray-100 border-gray-200 opacity-50"
+                              : "bg-transparent border-gray-300"
                         }`}
                       >
-                        <Text className={selected ? "text-white" : "text-gray-800"}>
+                        <Text className={
+                          selected 
+                            ? "text-white" 
+                            : isDisabled 
+                              ? "text-gray-400"
+                              : "text-gray-800"
+                        }>
                           {interest.icon ? `${interest.icon} ` : ""}
                           {interest.name}
                         </Text>
@@ -216,36 +234,22 @@ export default function InterestsScreen() {
 
         {/* Footer / CTA */}
         <View className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-gray-200">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-gray-600">
-              Selected: <Text className="font-semibold">{selectedInterests.length}</Text> / {MAX_ALLOWED}
-            </Text>
-            {selectedInterests.length < MIN_REQUIRED && (
-              <Text className="text-gray-500">Need {MIN_REQUIRED - selectedInterests.length} more</Text>
-            )}
-            {selectedInterests.length >= MAX_ALLOWED && (
-              <Text className="text-green-600">Maximum reached!</Text>
-            )}
-          </View>
-
-          <Pressable
+          <Button
             onPress={onContinue}
             disabled={!canContinue}
-            className={`w-full items-center justify-center rounded-xl py-4 ${
+            size="lg"
+            className={`w-full ${
               canContinue ? "bg-primary" : "bg-gray-300"
             }`}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !canContinue, busy: submitting }}
-            accessibilityLabel="Doorgaan"
           >
             {submitting ? (
               <ActivityIndicator />
             ) : (
               <Text className={`text-center font-semibold ${canContinue ? "text-white" : "text-gray-600"}`}>
-                Doorgaan
+                Next
               </Text>
             )}
-          </Pressable>
+          </Button>
         </View>
       </View>
     </SafeAreaView>

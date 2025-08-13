@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { View } from "react-native";
 import { router } from "expo-router";
+import Icon from "react-native-remix-icon";
 
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
-import { H1, Muted } from "@/components/ui/typography";
+import { H1 } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 
@@ -26,14 +27,13 @@ export default function DrinkingScreen() {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
-			<View className="flex-1 gap-6 py-24 web:m-4">
+		<SafeAreaView className="flex-1 bg-background p-4">
+			<View className="flex-1 gap-6 py-0 web:m-4">
 				<View className="gap-4">
-					<H1 className="self-start">Do you drink?</H1>
-					<Muted className="flex">
-						This helps us match you with people who have similar lifestyle
-						preferences.
-					</Muted>
+					<View className="gap-4 items-start">
+						<Icon name="goblet-line" size={24} color="#212030" />
+						<H1>Do you drink?</H1>
+					</View>
 				</View>
 
 				<View className="gap-3">
@@ -54,7 +54,7 @@ export default function DrinkingScreen() {
 
 			<View className="gap-4 web:m-4">
 				<Button
-					size="default"
+					size="lg"
 					variant="default"
 					onPress={handleNext}
 					disabled={!selectedOption}

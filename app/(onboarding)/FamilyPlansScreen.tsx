@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
 import { useOnboarding } from "@/context/onboarding-provider";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import Icon from "react-native-remix-icon";
 
 const familyPlansOptions = [
   'I have kids',
@@ -41,10 +42,10 @@ export default function FamilyPlansScreen() {
     <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
       <View className="flex-1 gap-6 py-24 web:m-4">
         <View className="gap-4">
-          <H1 className="self-start">What are your family plans?</H1>
-          <Muted className="flex">
-            Select all that apply to help us find better matches.
-          </Muted>
+          <View className="gap-4 items-start">
+            <Icon name="parent-line" size={24} color="#212030" />
+            <H1>What are your family plans?</H1>
+          </View>
         </View>
 
         <View className="gap-3">
@@ -65,7 +66,7 @@ export default function FamilyPlansScreen() {
 
       <View className="gap-4 web:m-4">
         <Button
-          size="default"
+          size="lg"
           variant="default"
           onPress={handleNext}
           disabled={selectedOptions.length === 0}

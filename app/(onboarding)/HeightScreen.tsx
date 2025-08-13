@@ -6,8 +6,9 @@ import { router } from "expo-router";
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
-import { H1, Muted } from "@/components/ui/typography";
+import { H1 } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import Icon from "react-native-remix-icon";
 
 export default function HeightScreen() {
 	const [selectedHeight, setSelectedHeight] = useState<number>(170);
@@ -23,6 +24,8 @@ export default function HeightScreen() {
 		router.push("/(onboarding)/FamilyPlansScreen");
 	};
 
+	const canContinue = selectedHeight !== null;
+
 	return (
 		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
 			<KeyboardAvoidingView
@@ -32,10 +35,10 @@ export default function HeightScreen() {
 			>
 				<View className="flex-1 gap-6 py-24 web:m-4">
 					<View className="gap-4">
-						<H1 className="self-start">What&apos;s your height?</H1>
-						<Muted className="flex">
-							This helps us find better matches for you.
-						</Muted>
+						<View className="gap-4 items-start">
+							<Icon name="ruler-line" size={24} color="#212030" />
+							<H1>What&apos;s your height?</H1>
+						</View>
 					</View>
 
 					<View className="gap-4 flex-1 justify-center">
@@ -71,14 +74,18 @@ export default function HeightScreen() {
 					</View>
 				</View>
 
-				<View className="items-center gap-4 web:m-4">
+				<View className="gap-4 web:m-4">
 					<Button
-						size="lg"
-						variant="default"
 						onPress={handleNext}
-						className="w-full"
+						disabled={!canContinue}
+						size="lg"
+						className={`w-full ${canContinue ? "bg-primary" : "bg-gray-300"}`}
 					>
-						<Text>Next</Text>
+						<Text
+							className={`text-center font-semibold ${canContinue ? "text-white" : "text-gray-600"}`}
+						>
+							Next
+						</Text>
 					</Button>
 				</View>
 			</KeyboardAvoidingView>

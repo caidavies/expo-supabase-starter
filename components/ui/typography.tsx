@@ -199,7 +199,7 @@ const Muted = React.forwardRef<TextRef, SlottableTextProps>(
 		return (
 			<Component
 				className={cn(
-					"text-sm text-muted-foreground web:select-text",
+					"text-md text-gray-600 font-sans",
 					className,
 				)}
 				ref={ref}
