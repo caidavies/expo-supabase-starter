@@ -21,7 +21,6 @@ export default function OnboardingLayout() {
 				<Stack.Screen name="welcome" />
 				<Stack.Screen name="FirstNameScreen" />
 				<Stack.Screen name="DobScreen" />
-				<Stack.Screen name="NotificationsScreen" />
 				<Stack.Screen name="LocationScreen" />
 				<Stack.Screen name="DatingAreasScreen" />
 				<Stack.Screen name="PronounsScreen" />

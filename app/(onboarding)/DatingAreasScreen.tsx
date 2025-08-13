@@ -173,7 +173,7 @@ export default function DatingAreasScreen() {
 									<Pressable
 										key={district.id}
 										onPress={() => toggleArea(district.id)}
-										className={`p-4 rounded-xl border-2 mb-2 ${
+										className={`p-4 rounded-full border-2 mb-2 ${
 											isSelected
 												? "border-primary bg-primary/5"
 												: "border-gray-200 bg-white"

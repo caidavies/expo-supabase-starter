@@ -11,7 +11,6 @@ export const ONBOARDING_FLOW = [
 	"welcome",
 	"FirstNameScreen",
 	"DobScreen",
-	"NotificationsScreen",
 	"LocationScreen",
 	"DatingAreasScreen",
 	"PronounsScreen",
@@ -81,15 +80,7 @@ type OnboardingData = {
 		ageRangeMin?: number;
 		ageRangeMax?: number;
 	} | null;
-	
-	// App preferences
-	appPreferences: {
-		pushNotifications?: boolean;
-		emailNotifications?: boolean;
-		marketingEmails?: boolean;
-		analyticsSharing?: boolean;
-	} | null;
-	
+		
 	// Selected interests (will be linked to interests table)
 	interests: string[];
 };
