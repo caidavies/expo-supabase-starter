@@ -7,8 +7,9 @@ module.exports = {
 	theme: {
 		extend: {
 			fontFamily: {
-				'serif': ['YoungSerif-Bold', 'serif'],
-				'sans': ['Inter', 'sans-serif'],
+				DEFAULT: ["Inter", "sans-serif"],
+				serif: ["YoungSerif-Bold", "serif"],
+				sans: ["Inter", "sans-serif"],
 			},
 			colors: {
 				border: "hsl(var(--border))",

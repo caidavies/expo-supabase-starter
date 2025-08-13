@@ -37,8 +37,8 @@ export default function Complete() {
 			// Simulate delay for demo purposes
 			await new Promise(resolve => setTimeout(resolve, 2000));
 			
-			// Trigger re-evaluation of user state at root level
-			router.replace("/");
+			// Navigate to the protected area
+			router.replace("/(protected)");
 		} catch (error: Error | any) {
 			console.error("Error completing onboarding:", error);
 			setIsLoading(false);
@@ -49,18 +49,20 @@ export default function Complete() {
 		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
 			<View className="flex-1 gap-6 py-24 web:m-4">
 				<View className="gap-4">
-					<H1 className="self-start">Let's show off who you are, adding pictures, prompts & a bio</H1>
+					<H1 className="self-start">🎉 Onboarding Complete!</H1>
+					<Muted className="text-lg">
+						Great job! We've collected all the information we need to get you started. 
+						Your profile is being set up...
+					</Muted>
 				</View>
+				
+				{isLoading && (
+					<View className="items-center gap-4">
+						<ActivityIndicator size="large" />
+						<Text>Setting up your profile...</Text>
+					</View>
+				)}
 			</View>
-			<View className="gap-4 web:m-4">
-					<Button
-						size="default"
-						variant="default"
-						onPress={() => router.push("/screens/PhotoSelectionScreen")}
-					>
-						<Text>Next</Text>
-					</Button>
-				</View>
 		</SafeAreaView>
 	);
 } 

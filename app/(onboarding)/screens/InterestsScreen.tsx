@@ -1,6 +1,7 @@
 // InterestsScreen.tsx
 import React, { useCallback, useMemo, useState } from "react";
 import { Alert, ActivityIndicator, View, Text, SafeAreaView, ScrollView, Pressable } from "react-native";
+import { router } from "expo-router";
 import { Button } from "@/components/ui/button";
 import { useInterests } from "@/app/hooks/useInterests"; // expect: { interests, loading, error, refetch }
 import { supabase } from "@/config/supabase";
@@ -110,21 +111,8 @@ export default function InterestsScreen() {
 
       await submitSelectedInterests(userData.id, selectedInterests);
       
-      // Show success message
-      Alert.alert(
-        "Success!", 
-        "Your interests have been saved successfully!",
-        [
-          {
-            text: "Continue",
-            onPress: () => {
-              // Navigate onward in your onboarding flow
-              // @ts-ignore – replace "Onboarding.Next" with your actual route
-              // navigation.navigate("Onboarding.Next");
-            }
-          }
-        ]
-      );
+      // Navigate to the next onboarding screen
+      router.push("/(onboarding)/screens/PhotoSelectionScreen");
     } catch (e: any) {
       Alert.alert(
         "Oops!", 

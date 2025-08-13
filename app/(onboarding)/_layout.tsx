@@ -6,7 +6,16 @@ export default function OnboardingLayout() {
 		<OnboardingProvider>
 			<Stack
 				screenOptions={{
-					headerShown: false,
+					title: "",
+					headerShadowVisible: false,
+					headerShown: true,
+					headerBackButtonDisplayMode: "minimal",
+					headerTintColor: "#000000",
+					headerStyle: {
+						backgroundColor: "#FFFFFF",
+						borderBottom: "none",
+						borderBottomColor: "transparent",
+					},
 					animation: "slide_from_right",
 				}}
 			>

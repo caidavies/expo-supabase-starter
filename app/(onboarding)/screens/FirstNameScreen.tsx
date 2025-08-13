@@ -4,11 +4,11 @@ import { router } from "expo-router";
 
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { BorderlessInput } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
-import { H1, Muted } from "@/components/ui/typography";
+import { H1 } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import Icon from "react-native-remix-icon";
 
 export default function FirstNameScreen() {
 	const [firstName, setFirstName] = useState("");
@@ -30,19 +30,16 @@ export default function FirstNameScreen() {
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				keyboardVerticalOffset={0}
 			>
-				<View className="flex-1 gap-6 py-24 web:m-4">
-					<View className="gap-4">
-						<H1 className="self-start">What&apos;s your first name?</H1>
-						<Muted className="flex">
-							This is how you&apos;ll appear to others.
-						</Muted>
+				<View className="flex-1 gap-0 py-24 web:m-4">
+					<View className="gap-4 items-start">
+						<Icon name="profile-line" size={24} color="#000000" />
+						<H1 className="self-start font-serif font-bold w-full">What&apos;s your name?</H1>
 					</View>
 
 					<View className="gap-4">
 						<View className="gap-2">
-							<Label>First Name</Label>
-							<Input
-								placeholder="Enter your first name"
+							<BorderlessInput
+								placeholder="First name"
 								value={firstName}
 								onChangeText={setFirstName}
 								autoCapitalize="words"

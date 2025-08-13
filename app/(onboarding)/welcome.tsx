@@ -54,7 +54,7 @@ export default function Welcome() {
 				<Button
 					size="default"
 					variant="default"
-					onPress={() => router.push("/(protected)/(tabs)/HomeScreen")}
+					onPress={() => router.push("/(onboarding)/screens/FirstNameScreen")}
 				>
 					<Text>Get Started</Text>
 				</Button>

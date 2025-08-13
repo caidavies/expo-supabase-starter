@@ -25,6 +25,8 @@ export default function ScreensLayout() {
 			<Stack.Screen name="DrinkingScreen" />
 			<Stack.Screen name="SmokingScreen" />
 			<Stack.Screen name="InterestsScreen" />
+			<Stack.Screen name="PhotoSelectionScreen" />
+			<Stack.Screen name="PromptsScreen" />
 		</Stack>
 	);
 } 

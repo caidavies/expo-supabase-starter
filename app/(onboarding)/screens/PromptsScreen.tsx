@@ -268,10 +268,8 @@ export default function PromptsScreen() {
 			// Update onboarding context
 			updateProfile({ prompts: userPrompts });
 			
-			// Navigate to next screen
-			// router.push("/(onboarding)/next-screen");
-			
-			Alert.alert("Success!", "Your prompts have been saved!");
+			// Navigate to complete onboarding
+			router.push("/(onboarding)/complete");
 		} catch (error) {
 			Alert.alert("Error", "Failed to save prompts. Please try again.");
 		} finally {
