@@ -7,6 +7,8 @@ import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
 import { useAuth } from "@/context/supabase-provider";
 import { useDistricts, saveUserDatingAreas, getUserDatingAreas, type District } from "@/app/hooks/useDistricts";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+
 import { supabase } from "@/config/supabase";
 
 export default function DatingAreasScreen() {
@@ -15,6 +17,7 @@ export default function DatingAreasScreen() {
 	const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { updateProfile } = useOnboarding();
+	const { next } = useOnboardingNavigation();
 
 	const MIN_AREAS = 1;
 	const MAX_AREAS = 10;
@@ -35,7 +38,7 @@ export default function DatingAreasScreen() {
 
 				// Get existing dating areas using the helper function
 				const existingAreas = await getUserDatingAreas(userData.id);
-				
+
 				// Convert area names back to IDs
 				const areaIds = existingAreas
 					.map((areaName: string) => {
@@ -43,7 +46,7 @@ export default function DatingAreasScreen() {
 						return district?.id;
 					})
 					.filter(Boolean);
-				
+
 				setSelectedAreas(areaIds);
 			} catch (error) {
 				console.error("Error loading user dating areas:", error);
@@ -77,7 +80,7 @@ export default function DatingAreasScreen() {
 
 		try {
 			setIsSubmitting(true);
-			
+
 			// Get the user ID from the users table
 			const { data: userData, error: userError } = await supabase
 				.from("users")
@@ -96,17 +99,15 @@ export default function DatingAreasScreen() {
 
 			// Save dating areas to both tables using the helper function
 			await saveUserDatingAreas(userData.id, selectedAreaNames);
-			
+
 			// Update onboarding context
 			updateProfile({ 
 				preferred_dating_areas: selectedAreas,
 				preferred_dating_area_names: selectedAreaNames
 			});
-			
-			// Navigate to next screen
-			// router.push("/(onboarding)/next-screen");
-			
-			Alert.alert("Success!", `Your dating areas have been saved!`);
+
+			// Navigate to next screen using the navigation system
+			next();
 		} catch (error) {
 			console.error("Error saving dating areas:", error);
 			Alert.alert("Error", "Failed to save your dating areas. Please try again.");
@@ -163,9 +164,11 @@ export default function DatingAreasScreen() {
 				{Object.entries(districtsByRegion).map(([region, regionDistricts]) => (
 					<View key={region} className="mb-6">
 						<Text className="text-lg font-semibold text-gray-800 mb-3">{region}</Text>
+
 						<View className="space-y-2">
 							{regionDistricts.map((district) => {
 								const isSelected = selectedAreas.includes(district.id);
+
 								return (
 									<Pressable
 										key={district.id}

@@ -19,7 +19,7 @@ export default function Profile() {
 			// Store profile data in onboarding context
 			updateProfile({ name });
 			console.log("Profile name saved:", name);
-			router.push("/(onboarding)/preferences");
+			router.push("/(onboarding)/screens/DobScreen");
 		}
 	};
 

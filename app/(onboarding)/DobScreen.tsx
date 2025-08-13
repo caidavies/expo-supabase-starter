@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, View } from "react-native";
-import { router } from "expo-router";
 
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { useAuth } from "@/context/supabase-provider";
 
 export default function DobScreen() {
@@ -17,6 +17,7 @@ export default function DobScreen() {
 	const [year, setYear] = useState("");
 	const [isCreating, setIsCreating] = useState(false);
 	const { updateUser, data } = useOnboarding();
+	const { next } = useOnboardingNavigation();
 	const { createUserProfile } = useAuth();
 
 	const handleNext = async () => {
@@ -41,11 +42,12 @@ export default function DobScreen() {
 				await createUserProfile(firstName, dateOfBirth);
 				console.log("User profile created successfully");
 
-				router.push("/(onboarding)/screens/GenderScreen");
+				// Use the navigation system to go to next screen
+				next();
 			} catch (error) {
 				console.error("Error creating user profile:", error);
 				// Still allow navigation to continue onboarding
-				router.push("/(onboarding)/screens/GenderScreen");
+				next();
 			} finally {
 				setIsCreating(false);
 			}

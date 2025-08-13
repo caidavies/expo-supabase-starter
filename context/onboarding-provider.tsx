@@ -4,7 +4,35 @@ import {
 	useContext,
 	useState,
 } from "react";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Define the onboarding flow order - easy to modify
+export const ONBOARDING_FLOW = [
+	"welcome",
+	"FirstNameScreen",
+	"DobScreen",
+	"NotificationsScreen",
+	"LocationScreen",
+	"DatingAreasScreen",
+	"PronounsScreen",
+	"GenderScreen",
+	"SexualityScreen",
+	"RelationshipTypeScreen",
+	"DatingIntentionScreen",
+	"HeightScreen",
+	"FamilyPlansScreen",
+	"HometownScreen",
+	"WorkScreen",
+	"ReligionScreen",
+	"DrinkingScreen",
+	"SmokingScreen",
+	"InterestsScreen",
+	"PhotoSelectionScreen",
+	"PromptsScreen",
+	"complete",
+] as const;
+
+export type OnboardingScreen = typeof ONBOARDING_FLOW[number];
 
 type OnboardingData = {
 	// Core user data
@@ -68,6 +96,9 @@ type OnboardingData = {
 
 type OnboardingState = {
 	data: OnboardingData;
+	// Flow information
+	flow: typeof ONBOARDING_FLOW;
+	// Data management
 	updateUser: (user: Partial<OnboardingData["user"]>) => void;
 	updateProfile: (profile: Partial<OnboardingData["profile"]>) => void;
 	updateDatingPreferences: (preferences: Partial<OnboardingData["datingPreferences"]>) => void;
@@ -84,6 +115,7 @@ export const OnboardingContext = createContext<OnboardingState>({
 		appPreferences: null,
 		interests: [],
 	},
+	flow: ONBOARDING_FLOW,
 	updateUser: () => {},
 	updateProfile: () => {},
 	updateDatingPreferences: () => {},
@@ -152,6 +184,7 @@ export function OnboardingProvider({ children }: PropsWithChildren) {
 		<OnboardingContext.Provider
 			value={{
 				data,
+				flow: ONBOARDING_FLOW,
 				updateUser,
 				updateProfile,
 				updateDatingPreferences,

@@ -14,7 +14,7 @@ export default function WelcomeScreen() {
 	const router = useRouter();
 	const { colorScheme } = useColorScheme();
 	const { signOut, session } = useAuth();
-	
+
 	const appIcon =
 		colorScheme === "dark"
 			? require("@/assets/icon.png")
