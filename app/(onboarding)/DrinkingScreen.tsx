@@ -7,19 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+
 
 const drinkingOptions = ["Yes", "Sometimes", "I don't drink"];
 
 export default function DrinkingScreen() {
 	const [selectedOption, setSelectedOption] = useState("");
 	const { updateProfile } = useOnboarding();
-
+	const { next, canGoNext } = useOnboardingNavigation();
 	const handleNext = () => {
 		if (selectedOption) {
 			// Store drinking preference in profile context
 			updateProfile({ drinking: selectedOption });
 			console.log("Drinking preference saved:", selectedOption);
-			router.push("/(onboarding)/screens/SmokingScreen");
+			next();
 		}
 	};
 

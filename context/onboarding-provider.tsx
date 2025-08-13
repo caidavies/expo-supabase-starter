@@ -20,7 +20,6 @@ export const ONBOARDING_FLOW = [
 	"DatingIntentionScreen",
 	"HeightScreen",
 	"FamilyPlansScreen",
-	"HometownScreen",
 	"WorkScreen",
 	"ReligionScreen",
 	"DrinkingScreen",

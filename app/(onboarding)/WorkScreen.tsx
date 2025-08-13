@@ -1,24 +1,24 @@
 import React, { useState } from "react";
 import { View } from "react-native";
-import { router } from "expo-router";
 
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { BorderlessInput } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 
 export default function WorkScreen() {
 	const [workInfo, setWorkInfo] = useState("");
 	const { updateProfile } = useOnboarding();
-
+	const { next, canGoNext } = useOnboardingNavigation();
 	const handleNext = () => {
 		if (workInfo.trim()) {
 			// Store work info in profile context
 			updateProfile({ work: workInfo });
 			console.log("Work info saved:", workInfo);
-			router.push("/(onboarding)/screens/ReligionScreen");
+			next();
 		}
 	};
 
@@ -31,18 +31,17 @@ export default function WorkScreen() {
 				</View>
 
 				<View className="gap-4">
-					<Input
-						placeholder="Enter your job title or profession"
+					<BorderlessInput
+						placeholder="Enter your job title"
 						value={workInfo}
 						onChangeText={setWorkInfo}
-						className="text-center text-lg"
 					/>
 				</View>
 			</View>
 
 			<View className="gap-4 web:m-4">
 				<Button
-					size="default"
+					size="lg"
 					variant="default"
 					onPress={handleNext}
 					disabled={!workInfo.trim()}

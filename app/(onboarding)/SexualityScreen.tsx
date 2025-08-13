@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+
 
 const sexualityOptions = ["Men", "Women", "Non-Binary"];
 
 export default function SexualityScreen() {
 	const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 	const { updateDatingPreferences } = useOnboarding();
+	const { next, canGoNext } = useOnboardingNavigation();
 
 	const handleOptionToggle = (option: string) => {
 		setSelectedOptions((prev) =>
@@ -27,7 +30,7 @@ export default function SexualityScreen() {
 			// Store sexuality in dating preferences context
 			updateDatingPreferences({ sexuality: selectedOptions.join(", ") });
 			console.log("Sexuality saved:", selectedOptions);
-			router.push("/(onboarding)/screens/RelationshipTypeScreen");
+			next();
 		}
 	};
 

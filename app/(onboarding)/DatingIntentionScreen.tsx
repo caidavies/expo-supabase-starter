@@ -6,6 +6,8 @@ import { SafeAreaView } from '@/components/safe-area-view';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
+import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 
 const datingIntentionOptions = [
   'Casual dating',
@@ -17,11 +19,13 @@ const datingIntentionOptions = [
 
 export default function DatingIntentionScreen() {
   const [selectedIntention, setSelectedIntention] = useState('');
-
+  const { updateDatingPreferences } = useOnboarding();
+  const { next, canGoNext } = useOnboardingNavigation();
   const handleNext = () => {
     if (selectedIntention) {
       console.log('Dating intention:', selectedIntention);
-      router.push('/(onboarding)/screens/HeightScreen');
+      updateDatingPreferences({ datingIntention: selectedIntention });
+      next();
     }
   };
 

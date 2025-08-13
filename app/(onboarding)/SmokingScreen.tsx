@@ -7,19 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+
 
 const smokingOptions = ["Yes", "Sometimes", "No"];
 
 export default function SmokingScreen() {
 	const [selectedOption, setSelectedOption] = useState("");
 	const { updateProfile } = useOnboarding();
-
+	const { next, canGoNext } = useOnboardingNavigation();
 	const handleNext = () => {
 		if (selectedOption) {
 			// Store smoking preference in onboarding context
 			updateProfile({ smoking: selectedOption });
 			console.log("Smoking preference saved:", selectedOption);
-			router.push("/(onboarding)/complete");
+			next();
 		}
 	};
 

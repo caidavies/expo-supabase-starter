@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { View } from "react-native";
-import { router } from "expo-router";
 
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 
 const religionOptions = [
 	"Christianity",
@@ -23,13 +23,13 @@ const religionOptions = [
 export default function ReligionScreen() {
 	const [selectedReligion, setSelectedReligion] = useState("");
 	const { updateProfile } = useOnboarding();
-
+	const { next, canGoNext } = useOnboardingNavigation();
 	const handleNext = () => {
 		if (selectedReligion) {
 			// Store religion in profile context
 			updateProfile({ religion: selectedReligion });
 			console.log("Religion saved:", selectedReligion);
-			router.push("/(onboarding)/screens/DrinkingScreen");
+			next();
 		}
 	};
 

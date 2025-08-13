@@ -6,6 +6,8 @@ import { SafeAreaView } from '@/components/safe-area-view';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
+import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 
 const familyPlansOptions = [
   'I have kids',
@@ -17,7 +19,8 @@ const familyPlansOptions = [
 
 export default function FamilyPlansScreen() {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-
+  const { updateDatingPreferences } = useOnboarding();
+  const { next, canGoNext } = useOnboardingNavigation();
   const handleOptionToggle = (option: string) => {
     setSelectedOptions(prev => 
       prev.includes(option) 
@@ -29,7 +32,8 @@ export default function FamilyPlansScreen() {
   const handleNext = () => {
     if (selectedOptions.length > 0) {
       console.log('Family plans:', selectedOptions);
-      router.push('/(onboarding)/screens/HometownScreen');
+      updateDatingPreferences({ familyPlans: selectedOptions });
+      next();
     }
   };
 

@@ -7,19 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { H1, Muted } from "@/components/ui/typography";
 import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 
 const genderOptions = ["Male", "Female", "Non Binary"];
 
 export default function GenderScreen() {
 	const [selectedGender, setSelectedGender] = useState("");
 	const { updateUser } = useOnboarding();
+	const { next, canGoNext } = useOnboardingNavigation();
 
 	const handleNext = () => {
 		if (selectedGender) {
 			// Store the gender in onboarding context (core user data)
 			updateUser({ gender: selectedGender });
 			console.log("Gender saved:", selectedGender);
-			router.push("/(onboarding)/screens/SexualityScreen");
+			next();
 		}
 	};
 

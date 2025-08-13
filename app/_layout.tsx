@@ -12,17 +12,17 @@ import { supabase } from "@/config/supabase";
 SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
-	const { session, loading } = useAuth();
+	const { session, initialized } = useAuth();
 	const { fontsLoaded, fontError } = useFonts();
 
 	useEffect(() => {
-		if (loading || !fontsLoaded) return;
+		if (!initialized || !fontsLoaded) return;
 
 		// Hide splash screen once loading is complete
 		SplashScreen.hideAsync();
-	}, [loading, fontsLoaded]);
+	}, [initialized, fontsLoaded]);
 
-	if (loading || !fontsLoaded) {
+	if (!initialized || !fontsLoaded) {
 		return (
 			<View className="flex-1 items-center justify-center bg-white">
 				<Text className="text-lg">Loading...</Text>
@@ -40,14 +40,14 @@ function RootNavigator() {
 
 	return (
 		<Stack screenOptions={{ headerShown: false }}>
-			{/* Always show onboarding first - this will be the default route */}
-			<Stack.Screen name="(onboarding)" />
-			
 			{/* Protected routes for authenticated users who completed onboarding */}
 			{session && <Stack.Screen name="(protected)" />}
-			
+
 			{/* Public routes for unauthenticated users */}
 			{!session && <Stack.Screen name="(public)" />}
+
+			{/* Onboarding routes */}
+			<Stack.Screen name="(onboarding)" />
 		</Stack>
 	);
 }

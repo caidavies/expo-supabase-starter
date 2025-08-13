@@ -6,6 +6,8 @@ import { SafeAreaView } from '@/components/safe-area-view';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { H1, Muted } from '@/components/ui/typography';
+import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 
 const relationshipTypeOptions = [
   'Monogamous',
@@ -18,11 +20,14 @@ const relationshipTypeOptions = [
 
 export default function RelationshipTypeScreen() {
   const [selectedType, setSelectedType] = useState('');
+  const { updateDatingPreferences } = useOnboarding();
+  const { next, canGoNext } = useOnboardingNavigation();
 
   const handleNext = () => {
     if (selectedType) {
+      updateDatingPreferences({ relationshipType: selectedType });
       console.log('Relationship type:', selectedType);
-      router.push('/(onboarding)/screens/DatingIntentionScreen');
+      next();
     }
   };
 
