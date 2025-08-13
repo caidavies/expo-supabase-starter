@@ -1,67 +1,75 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
-import { router } from 'expo-router';
+import React, { useState } from "react";
+import { View } from "react-native";
 
-import { SafeAreaView } from '@/components/safe-area-view';
-import { Button } from '@/components/ui/button';
-import { Text } from '@/components/ui/text';
-import { H1, Muted } from '@/components/ui/typography';
+import { SafeAreaView } from "@/components/safe-area-view";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
+import { H1, Muted } from "@/components/ui/typography";
+import { useOnboarding } from "@/context/onboarding-provider";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 
 const pronounsOptions = [
-  'He/Him',
-  'She/Her',
-  'They/Them',
-  'He/They',
-  'She/They',
-  'Prefer not to say'
+	"He/Him",
+	"She/Her",
+	"They/Them",
+	"He/They",
+	"She/They",
+	"Prefer not to say",
 ];
 
 export default function PronounsScreen() {
-  const [selectedPronouns, setSelectedPronouns] = useState('');
+	const [selectedPronouns, setSelectedPronouns] = useState("");
+	const { next } = useOnboardingNavigation();
 
-  const handleNext = () => {
-    if (selectedPronouns) {
-      console.log('Pronouns:', selectedPronouns);
-      router.push('/(onboarding)/screens/GenderScreen');
-    }
-  };
+	const handleNext = () => {
+		if (selectedPronouns) {
+			console.log("Pronouns:", selectedPronouns);
+			next();
+		}
+	};
 
-  return (
-    <SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
-      <View className="flex-1 gap-6 py-24 web:m-4">
-        <View className="gap-4">
-          <H1 className="self-start">What are your pronouns?</H1>
-          <Muted className="flex">
-            This helps us address you correctly and find better matches.
-          </Muted>
-        </View>
+	return (
+		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
+			<View className="flex-1 gap-6 py-24 web:m-4">
+				<View className="gap-4">
+					<H1 className="self-start">What are your pronouns?</H1>
+					<Muted className="flex">
+						This helps us address you correctly and find better matches.
+					</Muted>
+				</View>
 
-        <View className="gap-3">
-          {pronounsOptions.map((option) => (
-            <Button
-              key={option}
-              variant={selectedPronouns === option ? "default" : "outline"}
-              className="w-full justify-start"
-              onPress={() => setSelectedPronouns(option)}
-            >
-              <Text className={selectedPronouns === option ? "text-white" : ""}>
-                {option}
-              </Text>
-            </Button>
-          ))}
-        </View>
-      </View>
+				<View className="gap-3">
+					{pronounsOptions.map((option) => (
+						<Button
+							key={option}
+							variant={selectedPronouns === option ? "default" : "outline"}
+							className="w-full justify-start"
+							onPress={() => setSelectedPronouns(option)}
+						>
+							<Text
+								className={
+									selectedPronouns === option
+										? "text-white"
+										: "text-steel-gray-950"
+								}
+							>
+								{option}
+							</Text>
+						</Button>
+					))}
+				</View>
+			</View>
 
-      <View className="gap-4 web:m-4">
-        <Button
-          size="default"
-          variant="default"
-          onPress={handleNext}
-          disabled={!selectedPronouns}
-        >
-          <Text>Next</Text>
-        </Button>
-      </View>
-    </SafeAreaView>
-  );
+			<View className="gap-4 web:m-4">
+				<Button
+					size="default"
+					variant="default"
+					onPress={handleNext}
+					disabled={!selectedPronouns}
+				>
+					<Text>Next</Text>
+				</Button>
+			</View>
+		</SafeAreaView>
+	);
 } 
