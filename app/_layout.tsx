@@ -5,96 +5,57 @@ import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/context/supabase-provider";
 import { supabase } from "@/config/supabase";
+import { useFonts } from "@/app/hooks/useFonts";
+import { View, Text } from "react-native";
 
-export default function RootLayout() {
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
-    </GestureHandlerRootView>
-  );
-}
-
-type UserState =
-  | "loading"
-  | "unauthenticated"
-  | "needs-onboarding"
-  | "authenticated";
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
-  const { initialized, session, checkUserPreferences } = useAuth();
-  const [userState, setUserState] = useState<UserState>("loading");
+	const { session, loading } = useAuth();
+	const { fontsLoaded, fontError } = useFonts();
 
-  useEffect(() => {
-    const determineUserState = async () => {
-      if (!initialized) return;
+	useEffect(() => {
+		if (loading || !fontsLoaded) return;
 
-      console.log("=== DETERMINING USER STATE ===");
+		// Hide splash screen once fonts are loaded
+		SplashScreen.hideAsync();
+	}, [loading, fontsLoaded]);
 
-      if (!session) {
-        console.log("No session - user is unauthenticated");
-        setUserState("unauthenticated");
-        return;
-      }
+	// Show loading screen while fonts are loading
+	if (!fontsLoaded || fontError) {
+		return (
+			<View className="flex-1 items-center justify-center bg-white">
+				<Text className="text-lg">Loading fonts...</Text>
+			</View>
+		);
+	}
 
-      console.log("Session exists, checking user state...");
+	if (loading) {
+		return (
+			<View className="flex-1 items-center justify-center bg-white">
+				<Text className="text-lg">Loading...</Text>
+			</View>
+		);
+	}
 
-      // Check if user exists in profiles table
-      const { data: existingUser, error: userError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
+	return (
+		<Stack screenOptions={{ headerShown: false }}>
+			{session ? (
+				<Stack.Screen name="(protected)" />
+			) : (
+				<Stack.Screen name="(public)" />
+			)}
+		</Stack>
+	);
+}
 
-      if (userError || !existingUser) {
-        console.log("User not in database - needs onboarding");
-        setUserState("needs-onboarding");
-        return;
-      }
-
-      // Check if user has preferences
-      const hasPreferences = await checkUserPreferences();
-
-      if (!hasPreferences) {
-        console.log("User has no preferences - needs onboarding");
-        setUserState("needs-onboarding");
-      } else {
-        console.log("User has preferences - fully authenticated");
-        setUserState("authenticated");
-      }
-    };
-
-    determineUserState();
-  }, [initialized, session, checkUserPreferences]);
-
-  // Show splash screen while determining user state
-  if (!initialized || userState === "loading") {
-    return null;
-  }
-
-  SplashScreen.hideAsync();
-
-  return (
-    <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
-      <Stack.Screen 
-        name="(public)" 
-        options={{ 
-          headerShown: false 
-        }}
-      />
-      <Stack.Screen 
-        name="(onboarding)" 
-        options={{ 
-          headerShown: false 
-        }}
-      />
-      <Stack.Screen 
-        name="(protected)" 
-        options={{ 
-          headerShown: false 
-        }}
-      />
-    </Stack>
-  );
+export default function RootLayout() {
+	return (
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<AuthProvider>
+				<RootNavigator />
+			</AuthProvider>
+		</GestureHandlerRootView>
+	);
 }

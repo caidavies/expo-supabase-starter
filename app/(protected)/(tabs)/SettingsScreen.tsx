@@ -5,7 +5,6 @@ import { useAuth } from "@/context/supabase-provider";
 import { useLayoutEffect } from "react";
 import { useNavigation } from "expo-router";
 import { supabase } from "@/config/supabase";
-import { Edit, Camera, Heart, MapPin, User, Calendar, Coffee, Users } from "lucide-react-native";
 
 interface UserProfile {
 	id: string;
@@ -134,7 +133,7 @@ export default function SettingsScreen() {
 							/>
 						) : (
 							<View className="w-24 h-24 rounded-full bg-gray-200 items-center justify-center mb-3">
-								<User size={40} color="#9CA3AF" />
+								<Text className="text-gray-400 text-2xl">👤</Text>
 							</View>
 						)}
 						<TouchableOpacity className="bg-blue-500 px-4 py-2 rounded-full">
@@ -156,34 +155,22 @@ export default function SettingsScreen() {
 					
 					<View className="space-y-4">
 						<View className="flex-row items-center justify-between">
-							<View className="flex-row items-center">
-								<MapPin size={20} color="#6B7280" className="mr-3" />
-								<Text className="text-gray-700 ml-2">Current Location</Text>
-							</View>
+							<Text className="text-gray-700">Current Location</Text>
 							<Text className="text-gray-900">{profile?.current_location || 'Not set'}</Text>
 						</View>
 
 						<View className="flex-row items-center justify-between">
-							<View className="flex-row items-center">
-								<MapPin size={20} color="#6B7280" className="mr-3" />
-								<Text className="text-gray-700 ml-2">Hometown</Text>
-							</View>
+							<Text className="text-gray-700">Hometown</Text>
 							<Text className="text-gray-900">{profile?.hometown || 'Not set'}</Text>
 						</View>
 
 						<View className="flex-row items-center justify-between">
-							<View className="flex-row items-center">
-								<Calendar size={20} color="#6B7280" className="mr-3" />
-								<Text className="text-gray-700 ml-2">Date of Birth</Text>
-							</View>
+							<Text className="text-gray-700">Date of Birth</Text>
 							<Text className="text-gray-900">{profile?.date_of_birth || 'Not set'}</Text>
 						</View>
 
 						<View className="flex-row items-center justify-between">
-							<View className="flex-row items-center">
-								<User size={20} color="#6B7280" className="mr-3" />
-								<Text className="text-gray-700 ml-2">Gender</Text>
-							</View>
+							<Text className="text-gray-700">Gender</Text>
 							<Text className="text-gray-900">{profile?.gender || 'Not set'}</Text>
 						</View>
 					</View>
@@ -238,10 +225,7 @@ export default function SettingsScreen() {
 					
 					<View className="space-y-4">
 						<View className="flex-row items-center justify-between">
-							<View className="flex-row items-center">
-								<Coffee size={20} color="#6B7280" className="mr-3" />
-								<Text className="text-gray-700 ml-2">Drinking</Text>
-							</View>
+							<Text className="text-gray-700">Drinking</Text>
 							<Text className="text-gray-900">{profile?.drinking || 'Not set'}</Text>
 						</View>
 

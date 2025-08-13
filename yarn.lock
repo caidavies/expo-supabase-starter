@@ -4112,6 +4112,13 @@ expo-file-system@~18.1.9:
   resolved "https://registry.yarnpkg.com/expo-file-system/-/expo-file-system-18.1.9.tgz#0fa1f6bd491ef820abfb00dd9d5fac9c2dc7c4b0"
   integrity sha512-2i8IpaXpLVSI/dmT6TBfvRkl1+YkbWI07NCsQX1Myh33AF8xaJ4jv3Hz6WK1JArqDagCmrQUB2mW9SYnWYqLHg==
 
+expo-font@^13.3.2:
+  version "13.3.2"
+  resolved "https://registry.yarnpkg.com/expo-font/-/expo-font-13.3.2.tgz#1b5a1a14d6827a48a3f003577d5f7dc6b344a1d3"
+  integrity sha512-wUlMdpqURmQ/CNKK/+BIHkDA5nGjMqNlYmW0pJFXY/KE/OG80Qcavdu2sHsL4efAIiNGvYdBS10WztuQYU4X0A==
+  dependencies:
+    fontfaceobserver "^2.1.0"
+
 expo-font@~13.3.1:
   version "13.3.1"
   resolved "https://registry.yarnpkg.com/expo-font/-/expo-font-13.3.1.tgz#ed69ae14f263a4c447efb2615b60d9e045372e68"
@@ -5502,11 +5509,6 @@ lru-cache@^5.1.1:
   dependencies:
     yallist "^3.0.2"
 
-lucide-react-native@^0.539.0:
-  version "0.539.0"
-  resolved "https://registry.yarnpkg.com/lucide-react-native/-/lucide-react-native-0.539.0.tgz#d3dce7434890805d1ca32cbf106465b2172dd93d"
-  integrity sha512-8VZxqhFCagFIlWURJE9JXwB+ApXDhbfj5J5XwL2IFd8BdrVvyL41VvzRvNKrxSDJMKxnFqIZwBjXTp2qB0w3yQ==
-
 makeerror@1.0.12:
   version "1.0.12"
   resolved "https://registry.yarnpkg.com/makeerror/-/makeerror-1.0.12.tgz#3e5dd2079a82e812e983cc6610c4a2cb0eaa801a"
@@ -6520,6 +6522,11 @@ react-native-reanimated@~3.17.4:
     convert-source-map "^2.0.0"
     invariant "^2.2.4"
     react-native-is-edge-to-edge "1.1.7"
+
+react-native-remix-icon@^4.6.3:
+  version "4.6.3"
+  resolved "https://registry.yarnpkg.com/react-native-remix-icon/-/react-native-remix-icon-4.6.3.tgz#f55b076a2bf36b8f8b75ca6c57e9d0750621a1ce"
+  integrity sha512-YPd1xOBQnn6o3Xjrsu+hof4YLLLPskKdu0p26cT2yROhFuCsA6k9F5pccBXltxnhvp3C3GGlnaJ6eAEDF41jpg==
 
 react-native-safe-area-context@5.4.0:
   version "5.4.0"

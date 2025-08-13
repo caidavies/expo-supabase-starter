@@ -1,37 +1,47 @@
 import React from "react";
 import { Tabs } from "expo-router";
-import { Home, Heart, Settings } from "lucide-react-native";
+import Icon from "react-native-remix-icon";
+
 
 export default function TabsLayout() {
 	return (
-		<Tabs>
-			<Tabs.Screen
-				name="index"
-				options={{
-					title: "Home",
-					headerShown: false,
-					tabBarIcon: ({ color, size, focused }) => (
-						<Home size={size} color={color} />
-					),
-				}}
-			/>
+		<Tabs
+			screenOptions={{
+			tabBarStyle: {
+				backgroundColor: "#121212",
+				borderTopWidth: 1,
+				borderTopColor: "#E5E5E5",
+				paddingBottom: 16,
+				paddingTop: 8,
+				height: 72,
+			},
+			tabBarShowLabel: false,
+			headerShown: false,
+			tabBarActiveTintColor: "#FFFFFF",
+			tabBarInactiveTintColor: "#8E8E93",
+			tabBarIcon: ({ color, size, focused }) => (
+				<Icon name={focused ? "home-fill" : "home-line"} size={size} color={color} />
+			),
+		}}
+		>
+			<Tabs.Screen name="index"/>
 			<Tabs.Screen
 				name="FavoritesScreen"
 				options={{
-					title: "Favorites",
+					// title: "Favorites",
 					headerTitle: "Favorites", // This sets the header title
 					tabBarIcon: ({ color, size, focused }) => (
-						<Heart size={size} color={color} />
+						<Icon name={focused ? "heart-fill" : "heart-line"} size={size} color={color} />
 					),
 				}}
 			/>
 			<Tabs.Screen
 				name="SettingsScreen"
 				options={{
-					title: "Settings",
+					// title: "Settings",
 					headerTitle: "Settings", // This sets the header title
 					tabBarIcon: ({ color, size, focused }) => (
-						<Settings size={size} color={color} />
+						<Icon name={focused ? "user-fill" : "user-line"} size={size} color={color} />
 					),
 				}}
 			/>

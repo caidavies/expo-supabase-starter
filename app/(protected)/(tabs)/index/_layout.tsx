@@ -1,5 +1,5 @@
 import { router, Stack } from "expo-router";
-import { Settings2, CircleQuestionMark } from "lucide-react-native";
+import Icon from "react-native-remix-icon";
 import { Pressable, View } from "react-native";
 
 export default function IndexTabLayout() {
@@ -11,7 +11,6 @@ export default function IndexTabLayout() {
 				headerLargeTitleShadowVisible: false,
                 headerBackButtonDisplayMode: "minimal",
                 headerTintColor: "#000000",
-                
 				headerStyle: {
 					backgroundColor: "#FFFFFF",
 				},
@@ -21,20 +20,32 @@ export default function IndexTabLayout() {
 				name="index"
     				options={{
 					headerTitle: "Home",
+					headerLargeTitleStyle: {
+						fontFamily: "YoungSerif-Bold",
+						fontSize: 40,
+						fontWeight: "bold",
+						color: "#000000",
+					},
+					headerTitleStyle: {
+						fontFamily: "YoungSerif-Bold",
+						fontSize: 20,
+						fontWeight: "bold",
+						color: "#000000",
+					},
                     headerLargeTitle: true,
                     headerRight: () => (
-                        <View className="flex-row items-center">
+                        <View className="flex-row">
                         <Pressable
                             onPress={() => router.push("/modal")}
-                            className="mr-4  w-10 h-10"
+                            className="mr-4"
                         >
-                            <Settings2 size={20} color="#000000" />
+                            <Icon name="equalizer-2-line" size={20} color="#000000" />
                         </Pressable>
                         <Pressable
                             onPress={() => router.push("/faq")}
-                            className="mr-4  w-10 h-10"
+                            className="mr-4"
                         >
-                            <CircleQuestionMark size={20} color="#000000" />
+                            <Icon name="question-line" size={20} color="#000000" />
                         </Pressable>    
                         </View> 
                     ),

@@ -1,6 +1,4 @@
 import { Stack } from "expo-router";
-import { TouchableOpacity } from "react-native";
-import { Filter } from "lucide-react-native";
 import { useRouter } from "expo-router";
 
 export default function ProtectedLayout() {
@@ -10,6 +8,7 @@ export default function ProtectedLayout() {
 		<Stack
 			screenOptions={{
 				headerShown: false, // Let tabs handle their own headers
+				headerBackButtonDisplayMode: "minimal",
 			}}
 		>
 			<Stack.Screen name="(tabs)/index" />
