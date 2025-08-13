@@ -450,7 +450,7 @@ export default function PhotoSelectionScreen() {
 				</View>
 			</ScrollView>
 
-			<View className="gap-4 web:m-4 pt-4">
+			<View className="gap-4 web:m-4 pt-4 pb-6">
 				<Button
 					size="lg"
 					variant="default"

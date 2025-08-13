@@ -25,9 +25,9 @@ export default function OnboardingWelcomeScreen() {
 			/>
 			<SafeAreaView className="flex flex-1 bg-backgroundDark p-4">
 				<View className="flex flex-1 items-center justify-center gap-y-4 web:m-4 pb-40">
-					<H1 className="text-center text-white">Click</H1>
+					<H1 className="text-center text-white">Splash screen</H1>
 					<Muted className="text-center text-white/70 font-sans text-xl">
-					Skip endless swiping and go on real dates
+					Needs designing but this is the welcome screen
 					</Muted>
 				</View>
 				<View className="flex flex-col gap-y-4 web:m-4">

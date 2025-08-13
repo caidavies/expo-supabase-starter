@@ -30,7 +30,7 @@ export default function FirstNameScreen() {
 			<KeyboardAvoidingView
 				style={{ flex: 1 }}
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
-				keyboardVerticalOffset={0}
+				keyboardVerticalOffset={120}
 			>
 				<View className="flex-1 gap-0 py-24 web:m-4">
 					<View className="gap-4 items-start">
@@ -53,7 +53,6 @@ export default function FirstNameScreen() {
 						</View>
 					</View>
 				</View>
-
 				<View className="gap-4 web:m-4">
 					<Button
 						size="lg"

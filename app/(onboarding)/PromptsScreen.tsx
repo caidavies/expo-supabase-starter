@@ -9,7 +9,9 @@ import { useOnboarding } from "@/context/onboarding-provider";
 import { usePrompts, saveUserPrompts, fetchUserPrompts, type Prompt, type UserPrompt } from "@/app/hooks/usePrompts";
 import { useAuth } from "@/context/supabase-provider";
 import { supabase } from "@/config/supabase";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import Icon from "react-native-remix-icon";
+
 
 
 // Local state interface for managing prompts during editing
@@ -31,7 +33,7 @@ export default function PromptsScreen() {
 	const [editingAnswer, setEditingAnswer] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { updateProfile } = useOnboarding();
-
+	const { next, canGoNext } = useOnboardingNavigation();
 	// Load existing user prompts when component mounts
 	useEffect(() => {
 		const loadExistingPrompts = async () => {
@@ -191,9 +193,9 @@ export default function PromptsScreen() {
 		if (Platform.OS === 'ios') {
 			ActionSheetIOS.showActionSheetWithOptions(
 				{
-					options: ['Edit Answer', 'Replace Prompt', 'Cancel'],
-					cancelButtonIndex: 2,
-					destructiveButtonIndex: 1,
+					options: ['Edit Answer', 'Replace Prompt', 'Remove', 'Cancel'],
+					cancelButtonIndex: 3,
+					destructiveButtonIndex: 2,
 				},
 				(buttonIndex) => {
 					if (buttonIndex === 0) {
@@ -205,6 +207,9 @@ export default function PromptsScreen() {
 						setSelectedPromptIndex(index);
 						setIsAnswerMode(false);
 						setModalVisible(true);
+					} else if (buttonIndex === 2) {
+						// Remove
+						removePrompt(index);
 					}
 				}
 			);
@@ -225,7 +230,11 @@ export default function PromptsScreen() {
 							setSelectedPromptIndex(index);
 							setIsAnswerMode(false);
 							setModalVisible(true);
-						},
+						}
+					},
+					{
+						text: 'Remove',
+						onPress: () => removePrompt(index),
 						style: 'destructive'
 					},
 					{
@@ -271,7 +280,7 @@ export default function PromptsScreen() {
 			updateProfile({ prompts: userPrompts });
 			
 			// Navigate to complete onboarding
-			router.push("/(onboarding)/complete");
+			next();
 		} catch (error) {
 			Alert.alert("Error", "Failed to save prompts. Please try again.");
 		} finally {
@@ -343,7 +352,7 @@ export default function PromptsScreen() {
 					</View>
 				</View>
 
-				<View className="space-y-4">
+				<View className="space-y-4 flex flex-col gap-4">
 					{Array.from({ length: MAX_PROMPTS }, (_, index) => renderPromptArea(index))}
 				</View>
 
@@ -359,7 +368,7 @@ export default function PromptsScreen() {
 			{/* Footer */}
 			<View className="absolute bottom-0 left-0 right-0 p-4 pb-12 bg-background border-t border-gray-200">
 				<View className="flex-row justify-between items-center gap-4">
-					<Pressable onPress={() => router.push("/(onboarding)/DatingAreasScreen")}>
+					<Pressable onPress={() => router.push("/(onboarding)/complete")}>
 						<Text className="text-gray-800 text-lg">Skip</Text>
 					</Pressable>
 

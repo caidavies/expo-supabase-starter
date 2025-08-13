@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import React, { useState, useMemo, useRef } from "react";
+import { KeyboardAvoidingView, Platform, View, TextInput } from "react-native";
 
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,28 @@ export default function DobScreen() {
 	const { updateUser, data } = useOnboarding();
 	const { next } = useOnboardingNavigation();
 	const { createUserProfile } = useAuth();
+
+	// Refs for auto-focusing inputs
+	const monthInputRef = useRef<TextInput>(null);
+	const yearInputRef = useRef<TextInput>(null);
+
+	// Handle day input with auto-focus to month
+	const handleDayChange = (text: string) => {
+		setDay(text);
+		// Auto-focus to month when 2 digits are entered
+		if (text.length === 2) {
+			monthInputRef.current?.focus();
+		}
+	};
+
+	// Handle month input with auto-focus to year
+	const handleMonthChange = (text: string) => {
+		setMonth(text);
+		// Auto-focus to year when 2 digits are entered
+		if (text.length === 2) {
+			yearInputRef.current?.focus();
+		}
+	};
 
 	// Calculate age and validation
 	const ageValidation = useMemo(() => {
@@ -46,7 +68,7 @@ export default function DobScreen() {
 			inputDate.getMonth() !== monthNum - 1 ||
 			inputDate.getDate() !== dayNum
 		) {
-			return { isValid: false, age: null, error: "Please enter a valid date" };
+			return { isValid: false, age: null, error: null };
 		}
 
 		// Check if date is in the future
@@ -54,7 +76,7 @@ export default function DobScreen() {
 			return {
 				isValid: false,
 				age: null,
-				error: "Date of birth cannot be in the future",
+				error: null,
 			};
 		}
 
@@ -82,8 +104,8 @@ export default function DobScreen() {
 		if (age > 100) {
 			return {
 				isValid: false,
-				age,
-				error: `Please enter a valid date of birth. Age ${age} is not reasonable.`,
+				age: null,
+				error: null,
 			};
 		}
 
@@ -129,7 +151,7 @@ export default function DobScreen() {
 			<KeyboardAvoidingView
 				style={{ flex: 1 }}
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
-				keyboardVerticalOffset={16}
+				keyboardVerticalOffset={120}
 			>
 				<View className="flex-1 gap-6 py-24 web:m-4">
 					<View className="gap-4">
@@ -144,29 +166,34 @@ export default function DobScreen() {
 								<Input
 									placeholder="DD"
 									value={day}
-									onChangeText={setDay}
+									onChangeText={handleDayChange}
 									keyboardType="numeric"
 									autoCorrect={false}
+									maxLength={2}
 								/>
 							</View>
 							<View className="flex-1 gap-2">
 								<Label>Month</Label>
 								<Input
+									ref={monthInputRef}
 									placeholder="MM"
 									value={month}
-									onChangeText={setMonth}
+									onChangeText={handleMonthChange}
 									keyboardType="numeric"
 									autoCorrect={false}
+									maxLength={2}
 								/>
 							</View>
 							<View className="flex-1 gap-2">
 								<Label>Year</Label>
 								<Input
+									ref={yearInputRef}
 									placeholder="YYYY"
 									value={year}
 									onChangeText={setYear}
 									keyboardType="numeric"
 									autoCorrect={false}
+									maxLength={4}
 								/>
 							</View>
 						</View>
