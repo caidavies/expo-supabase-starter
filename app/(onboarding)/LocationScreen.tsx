@@ -183,7 +183,7 @@ export default function LocationScreen() {
 			</ScrollView>
 
 			{/* Footer */}
-			<View className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-gray-200">
+			<View className="absolute bottom-0 left-0 right-0 p-4 pb-12 bg-background border-t border-gray-200">
 				<Button onPress={handleNext} disabled={!canContinue} className="w-full">
 					<Text>{isSubmitting ? "Saving..." : "Next"}</Text>
 				</Button>

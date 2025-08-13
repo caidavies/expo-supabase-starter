@@ -25,7 +25,7 @@ export default function WorkScreen() {
 
 	return (
 		<SafeAreaView className="flex-1 bg-background p-4" edges={["bottom"]}>
-			<View className="flex-1 gap-6 py-24 web:m-4">
+			<View className="flex-1 py-24 web:m-4">
 				<View className="gap-4">
 					<View className="gap-4 items-start">
 						<Icon name="briefcase-4-line" size={24} color="#212030" />

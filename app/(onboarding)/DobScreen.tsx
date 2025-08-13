@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { KeyboardAvoidingView, Platform, View } from "react-native";
 
 import { SafeAreaView } from "@/components/safe-area-view";
@@ -21,8 +21,77 @@ export default function DobScreen() {
 	const { next } = useOnboardingNavigation();
 	const { createUserProfile } = useAuth();
 
+	// Calculate age and validation
+	const ageValidation = useMemo(() => {
+		if (!day.trim() || !month.trim() || !year.trim()) {
+			return { isValid: false, age: null, error: null };
+		}
+
+		const dayNum = parseInt(day, 10);
+		const monthNum = parseInt(month, 10);
+		const yearNum = parseInt(year, 10);
+
+		// Basic date validation
+		if (isNaN(dayNum) || isNaN(monthNum) || isNaN(yearNum)) {
+			return { isValid: false, age: null, error: null };
+		}
+
+		// Check if date is valid
+		const inputDate = new Date(yearNum, monthNum - 1, dayNum);
+		const today = new Date();
+
+		// Check if the date is valid (not invalid date like Feb 30)
+		if (
+			inputDate.getFullYear() !== yearNum ||
+			inputDate.getMonth() !== monthNum - 1 ||
+			inputDate.getDate() !== dayNum
+		) {
+			return { isValid: false, age: null, error: "Please enter a valid date" };
+		}
+
+		// Check if date is in the future
+		if (inputDate > today) {
+			return {
+				isValid: false,
+				age: null,
+				error: "Date of birth cannot be in the future",
+			};
+		}
+
+		// Calculate age
+		let age = today.getFullYear() - inputDate.getFullYear();
+		const monthDiff = today.getMonth() - inputDate.getMonth();
+
+		if (
+			monthDiff < 0 ||
+			(monthDiff === 0 && today.getDate() < inputDate.getDate())
+		) {
+			age--;
+		}
+
+		// Check if user is 18 or over
+		if (age < 18) {
+			return {
+				isValid: false,
+				age,
+				error: `You must be at least 18 years old. You are ${age} years old.`,
+			};
+		}
+
+		// Check if user is not unreasonably old (over 100)
+		if (age > 100) {
+			return {
+				isValid: false,
+				age,
+				error: `Please enter a valid date of birth. Age ${age} is not reasonable.`,
+			};
+		}
+
+		return { isValid: true, age, error: null };
+	}, [day, month, year]);
+
 	const handleNext = async () => {
-		if (day.trim() && month.trim() && year.trim()) {
+		if (ageValidation.isValid) {
 			try {
 				setIsCreating(true);
 
@@ -101,6 +170,17 @@ export default function DobScreen() {
 								/>
 							</View>
 						</View>
+
+						{/* Error message display - only show for under 18 */}
+						{ageValidation.error &&
+							ageValidation.age !== null &&
+							ageValidation.age < 18 && (
+								<View className="bg-red-50 border border-red-200 rounded-lg p-3">
+									<Text className="text-red-600 text-sm">
+										{ageValidation.error}
+									</Text>
+								</View>
+							)}
 					</View>
 				</View>
 
@@ -109,9 +189,7 @@ export default function DobScreen() {
 						size="lg"
 						variant="default"
 						onPress={handleNext}
-						disabled={
-							!day.trim() || !month.trim() || !year.trim() || isCreating
-						}
+						disabled={!ageValidation.isValid || isCreating}
 					>
 						<Text>{isCreating ? "Creating Profile..." : "Next"}</Text>
 					</Button>
